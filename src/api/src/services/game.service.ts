@@ -137,6 +137,7 @@ export const GameService = {
       createdAt: Date.now(),
       updatedAt: Date.now(),
       timeControlMs: room.timeControlMs,
+      createdBy: room.createdBy,
     };
 
     if (room.gameType === 'werewolf') {

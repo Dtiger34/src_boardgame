@@ -150,9 +150,9 @@ export function registerGameHandlers(io: IO, socket: Socket) {
   });
 
   socket.on('werewolf:skip_phase', async (roomId) => {
-    const room = await GameService.getRoom(roomId).catch(() => null);
-    if (!room || room.createdBy !== userId) return;
-    await skipPhase(io, roomId).catch(() => {});
+    const game = await GameService.getGame(roomId).catch(() => null);
+    if (!game || game.gameType !== 'werewolf') return;
+    await skipPhase(io, roomId);
   });
 
   socket.on('game:resign', async (roomId) => {

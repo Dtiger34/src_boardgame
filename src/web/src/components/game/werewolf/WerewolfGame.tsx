@@ -53,7 +53,6 @@ export function WerewolfGame({ roomId }: Props) {
   const boardState = gameState?.boardState as WerewolfPublicState | undefined;
   const phase = boardState?.phase;
 
-  // Reset hasActed when phase changes
   useEffect(() => {
     setHasActed(false);
   }, [phase]);
@@ -82,14 +81,9 @@ export function WerewolfGame({ roomId }: Props) {
       : phase === 'day_discussion' ? t('werewolf.dayDiscussion')
         : t('werewolf.dayVote');
 
-  // Night action targets
-  const aliveNonWolves = boardState.alivePlayers.filter((id) => {
-    const p = players.find((pl) => pl.userId === id);
-    return p && !wolfTeamIds.includes(id);
-  });
+  const aliveNonWolves = boardState.alivePlayers.filter((id) => !wolfTeamIds.includes(id));
   const aliveAll = boardState.alivePlayers;
 
-  // Vote tally
   const tally: Record<string, number> = {};
   for (const targetId of Object.values(boardState.votes)) {
     if (targetId) tally[targetId] = (tally[targetId] ?? 0) + 1;
@@ -117,7 +111,7 @@ export function WerewolfGame({ roomId }: Props) {
   };
 
   const isAlive = aliveSet.has(user.id);
-  const isHost = gameState.players[0]?.userId === user.id;
+  const isHost = (gameState.createdBy ?? players[0]?.userId) === user.id;
   const isWolf = myTeam === 'werewolf';
   const isSeer = myRole === 'seer';
   const isDoctor = myRole === 'doctor';
@@ -145,7 +139,6 @@ export function WerewolfGame({ roomId }: Props) {
               <button
                 onClick={() => skipPhase(roomId)}
                 className="px-3 py-1.5 text-xs font-semibold bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition"
-                title={t('werewolf.skipPhase')}
               >
                 ⏭ {t('werewolf.skipPhase')}
               </button>
@@ -167,7 +160,7 @@ export function WerewolfGame({ roomId }: Props) {
           </div>
         )}
 
-        {/* Night actions submitted status (visible to all) */}
+        {/* Night actions status */}
         {phase === 'night' && (
           <div className="bg-gray-900 rounded-xl p-4 text-sm">
             <p className="text-gray-400 font-semibold mb-2">{t('werewolf.actionsSubmitted')}</p>
@@ -255,7 +248,6 @@ export function WerewolfGame({ roomId }: Props) {
                 </div>
               </div>
             )}
-            {/* Investigate result banner */}
             {(isSeer || isSheriff) && privateInfo.investigateResult !== undefined && privateInfo.investigateTarget && (
               <div className={`mt-3 pt-3 border-t border-gray-700 rounded-lg p-2 text-sm text-center font-semibold ${privateInfo.investigateResult ? 'text-red-300 bg-red-950' : 'text-green-300 bg-green-950'}`}>
                 {getUsername(privateInfo.investigateTarget)}: {privateInfo.investigateResult
@@ -346,9 +338,8 @@ export function WerewolfGame({ roomId }: Props) {
                 {boardState.alivePlayers.filter((id) => id !== user.id).map((id) => (
                   <button
                     key={id}
-                    onClick={() => doAction('vote', id)}
-                    disabled={myVote !== undefined}
-                    className="w-full text-left px-3 py-2 bg-orange-900 hover:bg-orange-800 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-sm text-orange-100 transition"
+                    onClick={() => doAction('vote', myVote === id ? undefined : id)}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${myVote === id ? 'bg-orange-600 text-white ring-2 ring-orange-400' : 'bg-orange-900 hover:bg-orange-800 text-orange-100'}`}
                   >
                     ⚖️ {getUsername(id)}
                     {tally[id] ? <span className="ml-2 text-xs text-orange-300">({tally[id]})</span> : null}
@@ -356,8 +347,7 @@ export function WerewolfGame({ roomId }: Props) {
                 ))}
                 <button
                   onClick={() => doAction('vote')}
-                  disabled={myVote !== undefined}
-                  className="w-full text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-sm text-gray-300 transition"
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${myVote === null ? 'bg-gray-500 text-white ring-2 ring-gray-400' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}
                 >
                   {t('werewolf.skipVote')}
                 </button>

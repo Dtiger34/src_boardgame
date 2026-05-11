@@ -50,6 +50,7 @@ export interface GameState {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   timeControlMs?: number;
+  createdBy?: UUID;
 }
 
 export interface GameResult {
