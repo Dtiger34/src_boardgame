@@ -1,0 +1,26 @@
+{
+  "name": "boardgame-platform",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "src/api",
+    "src/web"
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:web": "pnpm --filter @boardgame/web dev",
+    "dev:api": "pnpm --filter @boardgame/api dev",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.4.0",
+    "turbo": "^2.3.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

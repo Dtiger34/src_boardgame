@@ -1,0 +1,55 @@
+import { useGameStore } from '@/store/game';
+import { useAuthStore } from '@/store/auth';
+import clsx from 'clsx';
+
+const SIZE = 15;
+
+interface GomokuState {
+  board: number[][];
+}
+
+export function GomokuBoard({ roomId }: { roomId: string }) {
+  const gameState = useGameStore((s) => s.gameState);
+  const sendMove = useGameStore((s) => s.sendMove);
+  const user = useAuthStore((s) => s.user);
+
+  if (!gameState) return null;
+
+  const board = (gameState.boardState as GomokuState).board;
+  const isMyTurn = gameState.currentTurn === user?.id && gameState.status === 'in_progress';
+  const myIndex = gameState.players.findIndex((p) => p.userId === user?.id);
+
+  function handleClick(row: number, col: number) {
+    if (!isMyTurn || board[row][col] !== 0) return;
+    sendMove(roomId, { row, col });
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <p className="text-sm text-gray-400">
+        {isMyTurn ? '✅ Lượt của bạn' : '⏳ Chờ đối thủ...'}
+        <span className="ml-2">{myIndex === 0 ? '⚫ Đen' : '⚪ Trắng'}</span>
+      </p>
+      <div
+        className="inline-grid bg-amber-100 border border-gray-400"
+        style={{ gridTemplateColumns: `repeat(${SIZE}, 36px)` }}
+      >
+        {board.map((row, r) =>
+          row.map((cell, c) => (
+            <button
+              key={`${r}-${c}`}
+              onClick={() => handleClick(r, c)}
+              className={clsx(
+                'w-9 h-9 border border-gray-400/40 flex items-center justify-center',
+                isMyTurn && cell === 0 && 'hover:bg-yellow-200/50 cursor-pointer',
+              )}
+            >
+              {cell === 1 && <span className="w-7 h-7 rounded-full bg-gray-900 border-2 border-gray-600 block" />}
+              {cell === 2 && <span className="w-7 h-7 rounded-full bg-white border-2 border-gray-300 block" />}
+            </button>
+          )),
+        )}
+      </div>
+    </div>
+  );
+}
