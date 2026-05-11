@@ -8,6 +8,11 @@ type IO = Server<ClientToServerEvents, ServerToClientEvents>;
 
 const timers = new Map<string, NodeJS.Timeout>();
 
+export async function skipPhase(io: IO, roomId: string): Promise<void> {
+  clearPhaseTimer(roomId);
+  await handlePhaseExpire(io, roomId);
+}
+
 export function schedulePhase(io: IO, roomId: string, delayMs: number): void {
   clearPhaseTimer(roomId);
   const t = setTimeout(() => {

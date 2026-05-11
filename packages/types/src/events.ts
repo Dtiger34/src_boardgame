@@ -13,6 +13,7 @@ export interface ClientToServerEvents {
   'game:accept_draw': (roomId: UUID) => void;
   'game:decline_draw': (roomId: UUID) => void;
   'chat:message': (payload: { roomId: UUID; content: string }) => void;
+  'werewolf:skip_phase': (roomId: UUID) => void;
   'matchmaking:join': (gameType: string) => void;
   'matchmaking:leave': () => void;
 }

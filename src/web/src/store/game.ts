@@ -29,6 +29,7 @@ interface GameStore {
   sendMove: (roomId: string, moveData: Record<string, unknown>) => void;
   sendChat: (roomId: string, content: string) => void;
   resign: (roomId: string) => void;
+  skipPhase: (roomId: string) => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -66,5 +67,8 @@ export const useGameStore = create<GameStore>((set) => ({
   },
   resign: (roomId) => {
     useSocketStore.getState().socket?.emit('game:resign', roomId);
+  },
+  skipPhase: (roomId) => {
+    useSocketStore.getState().socket?.emit('werewolf:skip_phase', roomId);
   },
 }));

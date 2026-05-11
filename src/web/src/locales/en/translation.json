@@ -69,6 +69,7 @@
     "dayDiscussion": "Discussion",
     "dayVote": "Vote",
     "round": "Round {{n}}",
+    "skipPhase": "End phase",
     "killed": "☠ {{name}} was killed last night.",
     "executed": "⚖ {{name}} was executed.",
     "noKill": "✨ Nobody died last night.",

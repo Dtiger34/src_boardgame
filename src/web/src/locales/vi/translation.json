@@ -95,6 +95,7 @@
     "dayDiscussion": "Thảo luận",
     "dayVote": "Bỏ phiếu",
     "round": "Vòng {{n}}",
+    "skipPhase": "Kết thúc giai đoạn",
     "killed": "☠ {{name}} đã bị giết đêm qua.",
     "executed": "⚖ {{name}} đã bị xử tử.",
     "noKill": "✨ Không ai chết đêm qua.",

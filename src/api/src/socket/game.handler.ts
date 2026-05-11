@@ -2,7 +2,7 @@ import { Server, Socket } from 'socket.io';
 import { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
 import { GameService } from '../services/game.service';
 import { UserService } from '../services/user.service';
-import { schedulePhase, clearPhaseTimer } from './werewolf-phase';
+import { schedulePhase, clearPhaseTimer, skipPhase } from './werewolf-phase';
 import { WerewolfState } from '../engines/werewolf';
 import { logger } from '../logger';
 
@@ -147,6 +147,12 @@ export function registerGameHandlers(io: IO, socket: Socket) {
       const e = err as { code?: string; message: string };
       socket.emit('error', { code: e.code || 'MOVE_ERROR', message: e.message });
     }
+  });
+
+  socket.on('werewolf:skip_phase', async (roomId) => {
+    const room = await GameService.getRoom(roomId).catch(() => null);
+    if (!room || room.createdBy !== userId) return;
+    await skipPhase(io, roomId).catch(() => {});
   });
 
   socket.on('game:resign', async (roomId) => {

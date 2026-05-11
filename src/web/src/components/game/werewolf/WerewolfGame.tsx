@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGameStore } from '@/store/game';
 import { useAuthStore } from '@/store/auth';
-import { ChatBox } from '@/components/game/ChatBox';
+import { ChatBox } from '@/components/game/shared/ChatBox';
 
 interface WerewolfPublicState {
   phase: 'night' | 'day_discussion' | 'day_vote';
@@ -45,7 +45,7 @@ export function WerewolfGame({ roomId }: Props) {
   const { t } = useTranslation();
   const gameState = useGameStore((s) => s.gameState);
   const privateInfo = useGameStore((s) => s.privateInfo);
-  const { sendMove } = useGameStore();
+  const { sendMove, skipPhase } = useGameStore();
   const user = useAuthStore((s) => s.user);
 
   const [hasActed, setHasActed] = useState(false);
@@ -117,6 +117,7 @@ export function WerewolfGame({ roomId }: Props) {
   };
 
   const isAlive = aliveSet.has(user.id);
+  const isHost = gameState.players[0]?.userId === user.id;
   const isWolf = myTeam === 'werewolf';
   const isSeer = myRole === 'seer';
   const isDoctor = myRole === 'doctor';
@@ -136,8 +137,19 @@ export function WerewolfGame({ roomId }: Props) {
               {t('werewolf.round', { n: boardState.round })}
             </div>
           </div>
-          <div className="text-3xl font-mono font-bold text-yellow-400">
-            {countdown}s
+          <div className="flex items-center gap-3">
+            <div className="text-3xl font-mono font-bold text-yellow-400">
+              {countdown}s
+            </div>
+            {isHost && (
+              <button
+                onClick={() => skipPhase(roomId)}
+                className="px-3 py-1.5 text-xs font-semibold bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition"
+                title={t('werewolf.skipPhase')}
+              >
+                ⏭ {t('werewolf.skipPhase')}
+              </button>
+            )}
           </div>
         </div>
 

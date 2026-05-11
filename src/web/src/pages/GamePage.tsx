@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSocketStore } from '@/store/socket';
 import { useGameStore } from '@/store/game';
-import { GomokuBoard } from '@/components/game/GomokuBoard';
-import { GamePanel } from '@/components/game/GamePanel';
-import { ChatBox } from '@/components/game/ChatBox';
-import { RoomLobby } from '@/components/game/RoomLobby';
-import { WerewolfGame } from '@/components/game/WerewolfGame';
+import { GomokuBoard } from '@/components/game/gomoku/GomokuBoard';
+import { GamePanel } from '@/components/game/shared/GamePanel';
+import { ChatBox } from '@/components/game/shared/ChatBox';
+import { RoomLobby } from '@/components/game/shared/RoomLobby';
+import { WerewolfGame } from '@/components/game/werewolf/WerewolfGame';
 
 export function GamePage() {
   const { roomId } = useParams<{ roomId: string }>();
