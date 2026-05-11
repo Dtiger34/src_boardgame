@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useGameStore } from '@/store/game';
 import { useAuthStore } from '@/store/auth';
 import clsx from 'clsx';
@@ -9,6 +10,7 @@ interface GomokuState {
 }
 
 export function GomokuBoard({ roomId }: { roomId: string }) {
+  const { t } = useTranslation();
   const gameState = useGameStore((s) => s.gameState);
   const sendMove = useGameStore((s) => s.sendMove);
   const user = useAuthStore((s) => s.user);
@@ -27,8 +29,8 @@ export function GomokuBoard({ roomId }: { roomId: string }) {
   return (
     <div className="flex flex-col items-center gap-3">
       <p className="text-sm text-gray-400">
-        {isMyTurn ? '✅ Lượt của bạn' : '⏳ Chờ đối thủ...'}
-        <span className="ml-2">{myIndex === 0 ? '⚫ Đen' : '⚪ Trắng'}</span>
+        {isMyTurn ? `✅ ${t('game.yourTurn')}` : `⏳ ${t('game.opponentTurn')}`}
+        <span className="ml-2">{myIndex === 0 ? '✖' : '⭕'}</span>
       </p>
       <div
         className="inline-grid bg-amber-100 border border-gray-400"
@@ -44,8 +46,8 @@ export function GomokuBoard({ roomId }: { roomId: string }) {
                 isMyTurn && cell === 0 && 'hover:bg-yellow-200/50 cursor-pointer',
               )}
             >
-              {cell === 1 && <span className="w-7 h-7 rounded-full bg-gray-900 border-2 border-gray-600 block" />}
-              {cell === 2 && <span className="w-7 h-7 rounded-full bg-white border-2 border-gray-300 block" />}
+              {cell === 1 && <span className="text-xl font-black text-blue-600 leading-none select-none">✕</span>}
+              {cell === 2 && <span className="text-xl font-black text-red-500 leading-none select-none">○</span>}
             </button>
           )),
         )}

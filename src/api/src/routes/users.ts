@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { UserService } from '../services/user.service';
 import { AppError } from '../middleware/error-handler';
+import { db } from '../db';
 
 export const usersRouter = Router();
 
@@ -20,6 +21,17 @@ usersRouter.patch('/:userId', authMiddleware, async (req, res) => {
   if (auth.userId !== req.params.userId) throw new AppError('FORBIDDEN', 'Forbidden', 403);
   await UserService.updateProfile(req.params.userId, req.body);
   res.json({ success: true });
+});
+
+usersRouter.patch('/me/display-name', authMiddleware, async (req, res) => {
+  const auth = req as AuthRequest;
+  const { displayName } = req.body as { displayName: string };
+  if (!displayName || typeof displayName !== 'string' || displayName.trim().length === 0) {
+    throw new AppError('VALIDATION', 'Display name is required', 400);
+  }
+  const trimmed = displayName.trim().slice(0, 50);
+  await db.query('UPDATE users SET display_name = $1 WHERE id = $2', [trimmed, auth.userId]);
+  res.json({ success: true, data: { displayName: trimmed } });
 });
 
 usersRouter.get('/:userId/games', async (req, res) => {

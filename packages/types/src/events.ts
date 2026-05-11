@@ -1,10 +1,12 @@
-import { GameState, GameMove, GameResult, GameRoom } from './game';
+import { GameState, GameMove, GameResult, GameRoom, WerewolfPrivateInfo } from './game';
 import { UUID } from './common';
 
 // Client -> Server events
 export interface ClientToServerEvents {
   'game:join': (roomId: UUID) => void;
   'game:leave': (roomId: UUID) => void;
+  'game:ready': (roomId: UUID) => void;
+  'game:start': (roomId: UUID) => void;
   'game:move': (payload: { roomId: UUID; moveData: Record<string, unknown> }) => void;
   'game:resign': (roomId: UUID) => void;
   'game:offer_draw': (roomId: UUID) => void;
@@ -22,12 +24,14 @@ export interface ServerToClientEvents {
   'game:result': (result: GameResult) => void;
   'game:player_connected': (userId: UUID) => void;
   'game:player_disconnected': (userId: UUID) => void;
+  'game:room_update': (room: GameRoom) => void;
   'game:draw_offered': (byUserId: UUID) => void;
   'game:timer_update': (timers: Record<UUID, number>) => void;
   'matchmaking:matched': (room: GameRoom) => void;
   'matchmaking:queue_position': (position: number) => void;
   'chat:message': (payload: { userId: UUID; username: string; content: string; timestamp: number }) => void;
   'error': (payload: { code: string; message: string }) => void;
+  'game:private_info': (info: WerewolfPrivateInfo) => void;
 }
 
 // Inter-service message queue events

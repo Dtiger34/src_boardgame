@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useGameStore } from '@/store/game';
 
 export function ChatBox({ roomId }: { roomId: string }) {
+  const { t } = useTranslation();
   const messages = useGameStore((s) => s.messages);
   const sendChat = useGameStore((s) => s.sendChat);
   const [input, setInput] = useState('');
@@ -20,7 +22,7 @@ export function ChatBox({ roomId }: { roomId: string }) {
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col flex-1">
-      <h3 className="font-medium mb-3 text-sm text-gray-400">Chat</h3>
+      <h3 className="font-medium mb-3 text-sm text-gray-400">{t('chat.title')}</h3>
       <div className="flex-1 overflow-y-auto flex flex-col gap-1 mb-3 max-h-48 min-h-0">
         {messages.map((msg, i) => (
           <div key={i} className="text-xs">
@@ -34,7 +36,7 @@ export function ChatBox({ roomId }: { roomId: string }) {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Nhắn tin..."
+          placeholder={t('chat.placeholder')}
           maxLength={500}
           className="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs focus:outline-none focus:border-amber-500"
         />
@@ -42,7 +44,7 @@ export function ChatBox({ roomId }: { roomId: string }) {
           type="submit"
           className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-gray-950 rounded text-xs font-semibold"
         >
-          Gửi
+          {t('chat.send')}
         </button>
       </form>
     </div>

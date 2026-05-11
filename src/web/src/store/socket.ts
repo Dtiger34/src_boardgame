@@ -2,30 +2,46 @@ import { create } from 'zustand';
 import { io, Socket } from 'socket.io-client';
 import { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
 import { useGameStore } from './game';
+import { useAuthStore } from './auth';
 
 type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
-interface SocketState {
+type SocketState = {
   socket: GameSocket | null;
-  connect: (token: string) => void;
+  connect: () => void;
   disconnect: () => void;
-}
+};
+
+let connecting = false;
 
 export const useSocketStore = create<SocketState>((set, get) => ({
   socket: null,
-  connect: (token) => {
-    if (get().socket?.connected) return;
+  connect: () => {
+    if (get().socket?.connected || connecting) return;
+    connecting = true;
+
+    const { user } = useAuthStore.getState();
     const url = import.meta.env.VITE_REALTIME_URL ?? 'http://localhost:4000';
-    const socket: GameSocket = io(url, { auth: { token } });
+    const socket: GameSocket = io(url, {
+      auth: { userId: user?.id, username: user?.username },
+    });
+
+    socket.on('connect', () => {
+      connecting = false;
+      set({ socket });
+    });
+    socket.on('connect_error', () => {
+      connecting = false;
+    });
+    socket.on('game:room_update', (room) => useGameStore.getState().setRoom(room));
     socket.on('game:state', (state) => useGameStore.getState().setGameState(state));
     socket.on('game:result', (result) => useGameStore.getState().setResult(result));
     socket.on('game:draw_offered', (userId) => useGameStore.getState().setDrawOffer(userId));
-    socket.on('matchmaking:matched', (room) => {
-      window.location.href = `/game/${room.id}`;
-    });
-    set({ socket });
+    socket.on('chat:message', (msg) => useGameStore.getState().addMessage(msg));
+    socket.on('game:private_info', (info) => useGameStore.getState().setPrivateInfo(info));
   },
   disconnect: () => {
+    connecting = false;
     get().socket?.disconnect();
     set({ socket: null });
   },

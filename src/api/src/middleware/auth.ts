@@ -1,7 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
 
 export interface AuthRequest extends Request {
   userId: string;
@@ -9,15 +6,12 @@ export interface AuthRequest extends Request {
 }
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ success: false, error: 'UNAUTHORIZED' });
-
-  try {
-    const payload = jwt.verify(token, JWT_SECRET) as { sub: string; username: string };
-    (req as AuthRequest).userId = payload.sub;
-    (req as AuthRequest).username = payload.username;
-    next();
-  } catch {
-    res.status(401).json({ success: false, error: 'INVALID_TOKEN' });
+  const userId = req.headers['x-user-id'] as string | undefined;
+  const username = req.headers['x-username'] as string | undefined;
+  if (!userId || !username) {
+    return res.status(401).json({ success: false, error: 'UNAUTHORIZED' });
   }
+  (req as AuthRequest).userId = userId;
+  (req as AuthRequest).username = username;
+  next();
 }

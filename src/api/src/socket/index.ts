@@ -1,12 +1,8 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
-import jwt from 'jsonwebtoken';
 import { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
 import { registerGameHandlers } from './game.handler';
 import { registerChatHandlers } from './chat.handler';
-import { startMatchmakingWorker } from './matchmaking.worker';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-production';
 
 export function createSocketServer(httpServer: HttpServer) {
   const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
@@ -17,16 +13,11 @@ export function createSocketServer(httpServer: HttpServer) {
   });
 
   io.use((socket, next) => {
-    const token = socket.handshake.auth.token as string | undefined;
-    if (!token) return next(new Error('Authentication required'));
-    try {
-      const payload = jwt.verify(token, JWT_SECRET) as { sub: string; username: string };
-      socket.data.userId = payload.sub;
-      socket.data.username = payload.username;
-      next();
-    } catch {
-      next(new Error('Invalid token'));
-    }
+    const { userId, username } = socket.handshake.auth as { userId?: string; username?: string };
+    if (!userId || !username) return next(new Error('userId and username required'));
+    socket.data.userId = userId;
+    socket.data.username = username;
+    next();
   });
 
   io.on('connection', (socket) => {
@@ -35,6 +26,5 @@ export function createSocketServer(httpServer: HttpServer) {
     registerChatHandlers(io, socket);
   });
 
-  startMatchmakingWorker(io);
   return io;
 }

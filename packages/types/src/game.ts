@@ -1,5 +1,23 @@
 import { UUID, Timestamp } from './common';
 
+export type WerewolfPrivateInfo = {
+  role: string;
+  team: string;
+  wolfTeam: string[];
+  investigateResult?: boolean;
+  investigateTarget?: string;
+};
+
+export type GameCatalogEntry = {
+  gameType: string;
+  name: string;
+  description: string;
+  rules: string;
+  minPlayers: number;
+  maxPlayers: number;
+  isActive: boolean;
+};
+
 export type GameStatus = 'waiting' | 'in_progress' | 'finished' | 'abandoned';
 export type PlayerColor = 'white' | 'black' | string;
 
@@ -9,6 +27,7 @@ export interface GamePlayer {
   color: PlayerColor;
   timeLeftMs: number;
   isConnected: boolean;
+  isReady?: boolean;
 }
 
 export interface GameMove {

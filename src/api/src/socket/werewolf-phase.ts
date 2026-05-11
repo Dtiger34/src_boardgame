@@ -1,0 +1,60 @@
+import { Server } from 'socket.io';
+import { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
+import { GameService } from '../services/game.service';
+import { getPrivateInfo, WerewolfState } from '../engines/werewolf';
+import { logger } from '../logger';
+
+type IO = Server<ClientToServerEvents, ServerToClientEvents>;
+
+const timers = new Map<string, NodeJS.Timeout>();
+
+export function schedulePhase(io: IO, roomId: string, delayMs: number): void {
+  clearPhaseTimer(roomId);
+  const t = setTimeout(() => {
+    timers.delete(roomId);
+    handlePhaseExpire(io, roomId).catch((e) => logger.error(e));
+  }, Math.max(delayMs, 0));
+  timers.set(roomId, t);
+}
+
+export function clearPhaseTimer(roomId: string): void {
+  const t = timers.get(roomId);
+  if (t) {
+    clearTimeout(t);
+    timers.delete(roomId);
+  }
+}
+
+async function handlePhaseExpire(io: IO, roomId: string): Promise<void> {
+  const game = await GameService.advancePhase(roomId);
+  if (!game) return;
+
+  const publicGame = GameService.scrubGameState(game);
+  io.to(`room:${roomId}`).emit('game:state', publicGame);
+
+  for (const player of game.players) {
+    const info = GameService.getWerewolfPrivateInfo(game, player.userId);
+    if (info) io.to(`user:${player.userId}`).emit('game:private_info', info);
+  }
+
+  // Check win condition
+  const { EngineRegistry } = await import('../engines/registry.js');
+  const engine = EngineRegistry.get('werewolf');
+  const result = engine.checkResult(game.boardState, game.players);
+  if (result) {
+    const gameResult = {
+      gameId: game.id,
+      winner: result.winner,
+      isDraw: result.isDraw,
+      reason: result.reason,
+      ratingChanges: {} as Record<string, number>,
+    };
+    io.to(`room:${roomId}`).emit('game:result', gameResult);
+    clearPhaseTimer(roomId);
+    return;
+  }
+
+  // Schedule next phase timer
+  const state = game.boardState as WerewolfState;
+  schedulePhase(io, roomId, state.phaseEndsAt - Date.now());
+}

@@ -1,36 +1,27 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { v4 as uuidv4 } from 'uuid';
 
-interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
-
-interface AuthUser {
+export type AuthUser = {
   id: string;
   username: string;
-  rating: number;
-}
+  displayName: string | null;
+};
 
-interface AuthState {
-  tokens: AuthTokens | null;
+type AuthState = {
   user: AuthUser | null;
-  setAuth: (tokens: AuthTokens) => void;
+  setDisplayName: (name: string) => void;
+  setUser: (user: AuthUser) => void;
   logout: () => void;
-}
+};
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      tokens: null,
-      user: null,
-      setAuth: (tokens) => {
-        const payload = JSON.parse(atob(tokens.accessToken.split('.')[1]));
-        set({ tokens, user: { id: payload.sub, username: payload.username, rating: 1200 } });
-      },
-      logout: () => set({ tokens: null, user: null }),
-    }),
-    { name: 'boardgame-auth' },
-  ),
-);
+export const useAuthStore = create<AuthState>((set, get) => ({
+  user: null,
+  setDisplayName: (name) => {
+    const trimmed = name.trim();
+    const existing = get().user;
+    const id = existing?.id ?? uuidv4();
+    set({ user: { id, username: trimmed, displayName: trimmed } });
+  },
+  setUser: (user) => set({ user }),
+  logout: () => set({ user: null }),
+}));

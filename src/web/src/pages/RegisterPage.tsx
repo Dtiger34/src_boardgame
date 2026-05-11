@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
 
 export function RegisterPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const [form, setForm] = useState({ username: '', email: '', password: '' });
+  const setUser = useAuthStore((s) => s.setUser);
+  const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,10 +18,10 @@ export function RegisterPage() {
     setError('');
     try {
       const { data } = await api.post('/auth/register', form);
-      setAuth(data.data);
+      setUser(data.data.user);
       navigate('/lobby');
     } catch (err: unknown) {
-      setError((err as any)?.response?.data?.message ?? 'Đăng ký thất bại');
+      setError((err as any)?.response?.data?.message ?? t('auth.registerFailed'));
     } finally {
       setLoading(false);
     }
@@ -28,11 +30,11 @@ export function RegisterPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-950 text-gray-100 p-4">
       <div className="w-full max-w-sm bg-gray-900 rounded-2xl p-8 border border-gray-800">
-        <h2 className="text-2xl font-bold mb-6">Đăng ký</h2>
+        <h2 className="text-2xl font-bold mb-6">{t('auth.registerTitle')}</h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="text"
-            placeholder="Tên người dùng"
+            placeholder={t('auth.usernamePlaceholder')}
             value={form.username}
             onChange={(e) => setForm({ ...form, username: e.target.value })}
             className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-amber-500"
@@ -40,16 +42,8 @@ export function RegisterPage() {
             required
           />
           <input
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-amber-500"
-            required
-          />
-          <input
             type="password"
-            placeholder="Mật khẩu (ít nhất 8 ký tự)"
+            placeholder={t('auth.passwordHint')}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-amber-500"
@@ -62,12 +56,12 @@ export function RegisterPage() {
             disabled={loading}
             className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-gray-950 font-semibold py-2.5 rounded-lg transition-colors"
           >
-            {loading ? 'Đang đăng ký...' : 'Đăng ký'}
+            {loading ? t('auth.registering') : t('auth.registerButton')}
           </button>
         </form>
         <p className="mt-4 text-center text-gray-400 text-sm">
-          Đã có tài khoản?{' '}
-          <Link to="/login" className="text-amber-400 hover:underline">Đăng nhập</Link>
+          {t('auth.hasAccount')}{' '}
+          <Link to="/login" className="text-amber-400 hover:underline">{t('auth.goLogin')}</Link>
         </p>
       </div>
     </div>
