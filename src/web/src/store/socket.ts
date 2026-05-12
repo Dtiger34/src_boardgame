@@ -38,6 +38,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     socket.on('game:result', (result) => useGameStore.getState().setResult(result));
     socket.on('game:draw_offered', (userId) => useGameStore.getState().setDrawOffer(userId));
     socket.on('chat:message', (msg) => useGameStore.getState().addMessage(msg));
+    socket.on('chat:wolf_message', (msg) => useGameStore.getState().addWolfMessage(msg));
     socket.on('game:private_info', (info) => useGameStore.getState().setPrivateInfo(info));
   },
   disconnect: () => {

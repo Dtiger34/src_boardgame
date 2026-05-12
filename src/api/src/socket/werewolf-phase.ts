@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
 import { GameService } from '../services/game.service';
 import { getPrivateInfo, WerewolfState } from '../engines/werewolf';
+import { EngineRegistry } from '../engines/registry';
 import { logger } from '../logger';
 
 type IO = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -43,7 +44,6 @@ async function handlePhaseExpire(io: IO, roomId: string): Promise<void> {
   }
 
   // Check win condition
-  const { EngineRegistry } = await import('../engines/registry.js');
   const engine = EngineRegistry.get('werewolf');
   const result = engine.checkResult(game.boardState, game.players);
   if (result) {

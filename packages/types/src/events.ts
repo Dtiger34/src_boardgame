@@ -13,6 +13,7 @@ export interface ClientToServerEvents {
   'game:accept_draw': (roomId: UUID) => void;
   'game:decline_draw': (roomId: UUID) => void;
   'chat:message': (payload: { roomId: UUID; content: string }) => void;
+  'chat:wolf_message': (payload: { roomId: UUID; content: string }) => void;
   'werewolf:skip_phase': (roomId: UUID) => void;
   'matchmaking:join': (gameType: string) => void;
   'matchmaking:leave': () => void;
@@ -31,6 +32,7 @@ export interface ServerToClientEvents {
   'matchmaking:matched': (room: GameRoom) => void;
   'matchmaking:queue_position': (position: number) => void;
   'chat:message': (payload: { userId: UUID; username: string; content: string; timestamp: number }) => void;
+  'chat:wolf_message': (payload: { userId: UUID; username: string; content: string; timestamp: number }) => void;
   'error': (payload: { code: string; message: string }) => void;
   'game:private_info': (info: WerewolfPrivateInfo) => void;
 }

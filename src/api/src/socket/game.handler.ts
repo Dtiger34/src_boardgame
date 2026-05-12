@@ -38,7 +38,10 @@ export function registerGameHandlers(io: IO, socket: Socket) {
         if (game.gameType === 'werewolf') {
           socket.emit('game:state', GameService.scrubGameState(game));
           const info = GameService.getWerewolfPrivateInfo(game, userId);
-          if (info) socket.emit('game:private_info', info);
+          if (info) {
+            socket.emit('game:private_info', info);
+            if (info.team === 'werewolf') socket.join(`wolf:${roomId}`);
+          }
         } else {
           socket.emit('game:state', game);
         }
@@ -82,7 +85,12 @@ export function registerGameHandlers(io: IO, socket: Socket) {
         for (const player of game.players) {
           io.to(`user:${player.userId}`).emit('game:state', publicGame);
           const info = GameService.getWerewolfPrivateInfo(game, player.userId);
-          if (info) io.to(`user:${player.userId}`).emit('game:private_info', info);
+          if (info) {
+            io.to(`user:${player.userId}`).emit('game:private_info', info);
+            if (info.team === 'werewolf') {
+              io.in(`user:${player.userId}`).socketsJoin(`wolf:${roomId}`);
+            }
+          }
         }
         const state = game.boardState as WerewolfState;
         schedulePhase(io, roomId, state.phaseEndsAt - Date.now());
@@ -130,7 +138,13 @@ export function registerGameHandlers(io: IO, socket: Socket) {
           clearPhaseTimer(roomId);
           io.to(`room:${roomId}`).emit('game:result', result);
         } else if (phaseBefore !== phaseAfter) {
-          // Phase changed due to all-done auto-resolve; reschedule timer
+          // Phase changed due to all-done auto-resolve; broadcast new state and reschedule timer
+          const publicGame = GameService.scrubGameState(game);
+          io.to(`room:${roomId}`).emit('game:state', publicGame);
+          for (const player of game.players) {
+            const info = GameService.getWerewolfPrivateInfo(game, player.userId);
+            if (info) io.to(`user:${player.userId}`).emit('game:private_info', info);
+          }
           const state = game.boardState as WerewolfState;
           schedulePhase(io, roomId, state.phaseEndsAt - Date.now());
         }
