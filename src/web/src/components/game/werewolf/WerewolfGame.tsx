@@ -230,6 +230,8 @@ export function WerewolfGame({ roomId }: Props) {
     );
   }
 
+  const [cardRevealed, setCardRevealed] = useState(false);
+
   const players = gameState.players;
   const aliveSet = new Set(boardState.alivePlayers);
   const myRole = privateInfo?.role ?? '';
@@ -407,8 +409,7 @@ export function WerewolfGame({ roomId }: Props) {
               const voteCount = tally[player.userId] ?? 0;
               const hasVotedFor = boardState.votes[user.id] === player.userId;
               const isMe = player.userId === user.id;
-              const cardRole = deadInfo?.revealedRole ?? (isMe ? myRole : undefined);
-              const cardImg = (cardRole && ROLE_IMAGES[cardRole]) ?? playerImg;
+              const cardImg = playerImg;
               return (
                 <div key={player.userId} className="flex flex-col gap-1">
                   <div
@@ -428,10 +429,10 @@ export function WerewolfGame({ roomId }: Props) {
                         {voteCount}
                       </span>
                     )}
-                    {/* Dead role icon */}
+                    {/* Dead overlay */}
                     {deadInfo && (
                       <span className="absolute top-1.5 left-1.5 text-lg leading-none drop-shadow">
-                        {ROLE_ICONS[deadInfo.revealedRole] ?? '☠'}
+                        ☠
                       </span>
                     )}
                   </div>
@@ -452,17 +453,53 @@ export function WerewolfGame({ roomId }: Props) {
         {privateInfo && (
           <div className="bg-gray-900 rounded-2xl p-5">
             <div className="text-center mb-3">
-              {ROLE_IMAGES[myRole] ? (
-                <img
-                  src={ROLE_IMAGES[myRole]}
-                  alt={myRole}
-                  className="w-24 h-32 object-cover rounded-xl mx-auto mb-2 border border-gray-700"
-                />
-              ) : (
-                <div className="text-4xl mb-1">{ROLE_ICONS[myRole] ?? '❓'}</div>
-              )}
-              <div className="text-lg font-bold text-white">{roleLabel[myRole] ?? myRole}</div>
-              <div className="text-sm text-gray-400 mt-1">{roleDesc[myRole] ?? ''}</div>
+              {/* Flip card */}
+              <div
+                className="relative w-40 h-56 mx-auto mb-2 select-none cursor-pointer"
+                style={{ perspective: '600px' }}
+                onMouseDown={() => setCardRevealed(true)}
+                onMouseUp={() => setCardRevealed(false)}
+                onMouseLeave={() => setCardRevealed(false)}
+                onTouchStart={() => setCardRevealed(true)}
+                onTouchEnd={() => setCardRevealed(false)}
+              >
+                <div
+                  className="absolute inset-0 transition-transform duration-500"
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: cardRevealed ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                  }}
+                >
+                  {/* Mặt sau (úp) */}
+                  <div
+                    className="absolute inset-0 rounded-xl border border-gray-600 bg-gray-800 flex flex-col items-center justify-center gap-1"
+                    style={{ backfaceVisibility: 'hidden' }}
+                  >
+                    <span className="text-3xl">🂠</span>
+                    <span className="text-xs text-gray-400">Giữ để xem</span>
+                  </div>
+                  {/* Mặt trước (role) */}
+                  <div
+                    className="absolute inset-0 rounded-xl border border-gray-700 overflow-hidden"
+                    style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                  >
+                    {ROLE_IMAGES[myRole] ? (
+                      <img
+                        src={ROLE_IMAGES[myRole]}
+                        alt={myRole}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-800">
+                        {ROLE_ICONS[myRole] ?? '❓'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div>{t('werewolf.myRole')}</div>
+              <div className="text-lg font-bold text-white">{cardRevealed ? (roleLabel[myRole] ?? myRole) : '???'}</div>
+              <div className="text-sm text-gray-400 mt-1">{cardRevealed ? (roleDesc[myRole] ?? '') : ''}</div>
             </div>
             {wolfTeamIds.length > 0 && (
               <div className="mt-3 pt-3 border-t border-gray-700">

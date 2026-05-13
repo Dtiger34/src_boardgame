@@ -91,6 +91,7 @@
     "goLogin": "Đăng nhập"
   },
   "werewolf": {
+    "myRole": "Vai trò của bạn",
     "night": "Đêm",
     "dayDiscussion": "Thảo luận",
     "dayVote": "Bỏ phiếu",

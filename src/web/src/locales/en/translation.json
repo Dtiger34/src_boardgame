@@ -65,6 +65,7 @@
     "resultLose": "You lose!"
   },
   "werewolf": {
+    "myRole": "Your role",
     "night": "Night",
     "dayDiscussion": "Discussion",
     "dayVote": "Vote",
