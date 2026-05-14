@@ -15,7 +15,6 @@ import {
   HunterRole,
   CupidRole,
   SheriffRole,
-  LittleGirlRole,
   SpecialVillagersRole,
   ThirdPartyRole,
 } from './roles/index';
@@ -53,9 +52,6 @@ const ROLE_HANDLERS: RoleHandler[] = [
   },
   {
     validateAction: (s, pid, action, t1) => SheriffRole.validateAction(s, pid, action, t1),
-  },
-  {
-    validateAction: (s, pid, action) => LittleGirlRole.validateAction(s, pid, action),
   },
   {
     validateAction: (s, pid, action, t1) => SpecialVillagersRole.validateAction(s, pid, action, t1),

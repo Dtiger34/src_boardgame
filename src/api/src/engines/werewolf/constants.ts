@@ -8,7 +8,6 @@ export const ROLE_TEAMS: Record<Role, Team> = {
   hunter: 'village',
   witch: 'village',
   cupid: 'village',
-  little_girl: 'village',
   two_sisters: 'village',
   three_brothers: 'village',
   stuttering_judge: 'village',

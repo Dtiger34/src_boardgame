@@ -7,6 +7,15 @@ export type WerewolfPrivateInfo = {
   investigateResult?: boolean;
   investigateTarget?: string;
   wolfVotes?: Record<string, string>;
+  sisterIds?: string[];
+  brotherIds?: string[];
+  lovers?: string[];
+  witchKillTarget?: string;
+  witchSaveUsed?: boolean;
+  witchPoisonUsed?: boolean;
+  hunterTarget?: string;
+  thiefCards?: [string, string];
+  wildChildModel?: string;
 };
 
 export type GameCatalogEntry = {

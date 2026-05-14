@@ -109,17 +109,13 @@ export function getPrivateInfo(
   wolfVotes?: Record<string, string>;
   sisterIds?: string[];
   brotherIds?: string[];
-  littleGirlPeeked?: boolean;
 } | null {
   const me = state.players.find((p) => p.userId === userId);
   if (!me) return null;
 
-  // Little girl gets wolf team when peeking; wolves can see if little girl peeked
-  const littleGirlPeeked = state.nightActions.littleGirlPeeked;
-  const wolfTeam =
-    me.team === 'werewolf' || (me.role === 'little_girl' && littleGirlPeeked)
-      ? state.players.filter((p) => p.team === 'werewolf').map((p) => p.userId)
-      : [];
+  const wolfTeam = me.team === 'werewolf'
+    ? state.players.filter((p) => p.team === 'werewolf').map((p) => p.userId)
+    : [];
 
   let investigateResult: boolean | undefined;
   let investigateTarget: string | undefined;
@@ -154,6 +150,5 @@ export function getPrivateInfo(
     wolfVotes,
     sisterIds,
     brotherIds,
-    littleGirlPeeked: me.team === 'werewolf' ? littleGirlPeeked : undefined,
   };
 }

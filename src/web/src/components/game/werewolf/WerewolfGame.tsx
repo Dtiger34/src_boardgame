@@ -61,6 +61,14 @@ export function WerewolfGame({ roomId }: Props) {
     [roomId, sendMove],
   );
 
+  const doCupidAction = useCallback(
+    (targetId: string, targetId2: string) => {
+      sendMove(roomId, { action: 'cupid_pair', targetId, targetId2 });
+      setHasActed(true);
+    },
+    [roomId, sendMove],
+  );
+
   if (!gameState || !boardState || !user) return null;
 
   const players = gameState.players;
@@ -181,6 +189,9 @@ export function WerewolfGame({ roomId }: Props) {
             investigateTarget={privateInfo.investigateTarget}
             isSeer={isSeer}
             isSheriff={isSheriff}
+            sisterIds={privateInfo.sisterIds}
+            brotherIds={privateInfo.brotherIds}
+            round={boardState.round}
           />
         )}
 
@@ -211,6 +222,7 @@ export function WerewolfGame({ roomId }: Props) {
           doWitchAction={doWitchAction}
           hunterTarget={privateInfo?.hunterTarget}
           doHunterAction={doHunterAction}
+          doCupidAction={doCupidAction}
           nightActionsDone={boardState.nightActionsDone}
           wolfFatherUsed={boardState.wolfFatherUsed}
           wolfSorcererUses={boardState.wolfSorcererUses}

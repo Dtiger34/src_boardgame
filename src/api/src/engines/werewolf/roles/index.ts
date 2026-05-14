@@ -5,7 +5,6 @@ export * as WitchRole from './witch';
 export * as HunterRole from './hunter';
 export * as CupidRole from './cupid';
 export * as SheriffRole from './sheriff';
-export * as LittleGirlRole from './little-girl';
 export * as SiblingsRole from './siblings';
 export * as SpecialVillagersRole from './special-villagers';
 export * as ThirdPartyRole from './third-party';

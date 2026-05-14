@@ -28,6 +28,7 @@ interface ActionPanelProps {
   doAction: (action: string, targetId?: string) => void;
   doWitchAction: (action: string, targetId?: string) => void;
   doHunterAction: (action: string, targetId?: string) => void;
+  doCupidAction: (targetId: string, targetId2: string) => void;
   nightActionsDone: Record<string, boolean>;
   wolfFatherUsed: boolean;
   wolfSorcererUses: number;
@@ -64,6 +65,7 @@ export function ActionPanel({
   doWitchAction,
   hunterTarget,
   doHunterAction,
+  doCupidAction,
   nightActionsDone,
   wolfFatherUsed,
   wolfSorcererUses,
@@ -73,6 +75,7 @@ export function ActionPanel({
   round,
 }: ActionPanelProps) {
   const { t } = useTranslation();
+  const [cupidFirst, setCupidFirst] = useState<string | null>(null);
 
   const isSpecialNightRole =
     isWolf ||
@@ -85,7 +88,6 @@ export function ActionPanel({
     myRole === 'dog_wolf' ||
     myRole === 'wolf_sorcerer' ||
     myRole === 'big_bad_wolf' ||
-    myRole === 'little_girl' ||
     myRole === 'thief' ||
     myRole === 'devoted_servant' ||
     myRole === 'impersonator' ||
@@ -126,19 +128,19 @@ export function ActionPanel({
               {/* Dog Wolf: choose side on round 1 */}
               {myRole === 'dog_wolf' && round === 1 && !hasActed && (
                 <div className="mt-3 space-y-2">
-                  <p className="text-sm text-gray-400">🐺 Chọn phe của bạn:</p>
+                  <p className="text-sm text-gray-400">{t('werewolf.dogWolfChooseSide')}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => doAction('dog_wolf_choose', 'village')}
                       className="flex-1 px-3 py-2 bg-green-900 hover:bg-green-800 rounded-lg text-sm text-green-100 transition"
                     >
-                      🏘 Làng
+                      {t('werewolf.sideVillage')}
                     </button>
                     <button
                       onClick={() => doAction('dog_wolf_choose', 'werewolf')}
                       className="flex-1 px-3 py-2 bg-red-800 hover:bg-red-700 rounded-lg text-sm text-red-100 transition"
                     >
-                      🐺 Sói
+                      {t('werewolf.sideWolf')}
                     </button>
                   </div>
                 </div>
@@ -151,7 +153,7 @@ export function ActionPanel({
                     onClick={() => doAction('wolf_father_convert')}
                     className="w-full text-left px-3 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-sm text-red-100 transition"
                   >
-                    🧛 Chuyển hóa thay vì giết
+                    {t('werewolf.wolfFatherConvert')}
                   </button>
                 </div>
               )}
@@ -159,7 +161,7 @@ export function ActionPanel({
               {/* White Wolf: kill a wolf on even rounds */}
               {myRole === 'white_wolf' && round % 2 === 0 && !nightActionsDone['white_wolf'] && (
                 <div className="mt-3">
-                  <p className="text-sm text-gray-400 mb-2">🐺 Giết một sói:</p>
+                  <p className="text-sm text-gray-400 mb-2">{t('werewolf.whiteWolfKill')}</p>
                   <div className="space-y-2">
                     {wolfTeamIds
                       .filter((id) => id !== myUserId && alivePlayers.includes(id))
@@ -182,7 +184,7 @@ export function ActionPanel({
                 !nightActionsDone['wolf_sorcerer'] && (
                   <div className="mt-3">
                     <p className="text-sm text-gray-400 mb-2">
-                      🔮 Vô hiệu hóa ({2 - wolfSorcererUses} lần còn lại):
+                      {t('werewolf.wolfSorcererDisable', { uses: 2 - wolfSorcererUses })}
                     </p>
                     <div className="space-y-2">
                       {aliveNonWolves
@@ -203,7 +205,7 @@ export function ActionPanel({
               {/* Big Bad Wolf: extra kill */}
               {myRole === 'big_bad_wolf' && bigBadWolfKillsActive && !hasActed && (
                 <div className="mt-3">
-                  <p className="text-sm text-gray-400 mb-2">💀 Giết thêm một người:</p>
+                  <p className="text-sm text-gray-400 mb-2">{t('werewolf.bigBadWolfExtraKill')}</p>
                   <div className="space-y-2">
                     {aliveNonWolves
                       .filter((id) => id !== myUserId)
@@ -261,9 +263,9 @@ export function ActionPanel({
           {myRole === 'hunter' && (
             <div>
               {hunterTarget !== undefined ? (
-                <p className="text-amber-400 text-sm mb-3">🏹 Bắn: {getUsername(hunterTarget)}</p>
+                <p className="text-amber-400 text-sm mb-3">{t('werewolf.hunterTarget', { name: getUsername(hunterTarget) })}</p>
               ) : (
-                <p className="text-sm text-gray-400 mb-3">🏹 Chọn mục tiêu bắn khi chết</p>
+                <p className="text-sm text-gray-400 mb-3">{t('werewolf.hunterPickTarget')}</p>
               )}
               <div className="space-y-2">
                 {aliveAll
@@ -294,28 +296,58 @@ export function ActionPanel({
             />
           )}
 
-          {myRole === 'cupid' && !hasActed && (
+          {myRole === 'cupid' && round === 1 && !hasActed && (
             <div>
-              <p className="text-sm text-gray-400 mb-3">Chọn người đầu tiên ghép đôi:</p>
-              <div className="space-y-2">
-                {aliveAll
-                  .filter((id) => id !== myUserId)
-                  .map((id) => (
-                    <button
-                      key={id}
-                      onClick={() => doAction('cupid_pair', id)}
-                      className="w-full text-left px-3 py-2 bg-pink-900 hover:bg-pink-800 rounded-lg text-sm text-pink-100 transition"
-                    >
-                      💘 {getUsername(id)}
-                    </button>
-                  ))}
-              </div>
+              {!cupidFirst ? (
+                <>
+                  <p className="text-sm text-gray-400 mb-3">{t('werewolf.cupidPickFirst')}</p>
+                  <div className="space-y-2">
+                    {aliveAll
+                      .filter((id) => id !== myUserId)
+                      .map((id) => (
+                        <button
+                          key={id}
+                          onClick={() => setCupidFirst(id)}
+                          className="w-full text-left px-3 py-2 bg-pink-900 hover:bg-pink-800 rounded-lg text-sm text-pink-100 transition"
+                        >
+                          💘 {getUsername(id)}
+                        </button>
+                      ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-400 mb-1">
+                    {t('werewolf.cupidSelected', { name: getUsername(cupidFirst) })}
+                  </p>
+                  <p className="text-sm text-gray-400 mb-3">{t('werewolf.cupidPickSecond')}</p>
+                  <div className="space-y-2">
+                    {aliveAll
+                      .filter((id) => id !== myUserId && id !== cupidFirst)
+                      .map((id) => (
+                        <button
+                          key={id}
+                          onClick={() => doCupidAction(cupidFirst, id)}
+                          className="w-full text-left px-3 py-2 bg-pink-900 hover:bg-pink-800 rounded-lg text-sm text-pink-100 transition"
+                        >
+                          💘 {getUsername(id)}
+                        </button>
+                      ))}
+                  </div>
+                  <button
+                    onClick={() => setCupidFirst(null)}
+                    className="mt-2 text-xs text-gray-500 hover:text-gray-300 transition"
+                  >
+                    {t('werewolf.cupidReselect')}
+                  </button>
+                </>
+              )}
             </div>
           )}
 
           {myRole === 'wild_child' && !hasActed && (
             <div>
-              <p className="text-sm text-gray-400 mb-3">Chọn hình mẫu:</p>
+              <p className="text-sm text-gray-400 mb-3">{t('werewolf.wildChildPickModel')}</p>
               <div className="space-y-2">
                 {aliveAll
                   .filter((id) => id !== myUserId)
@@ -335,7 +367,7 @@ export function ActionPanel({
           {/* Thief: choose a role card on round 1 */}
           {myRole === 'thief' && thiefCards && !hasActed && (
             <div>
-              <p className="text-sm text-gray-400 mb-3">🃏 Chọn vai trò:</p>
+              <p className="text-sm text-gray-400 mb-3">{t('werewolf.thiefPickRole')}</p>
               <div className="space-y-2">
                 {thiefCards.map((card) => (
                   <button
@@ -353,7 +385,7 @@ export function ActionPanel({
           {/* Devoted Servant: observe on round 1 */}
           {myRole === 'devoted_servant' && round === 1 && !hasActed && (
             <div>
-              <p className="text-sm text-gray-400 mb-3">🕯 Theo dõi một người đêm nay:</p>
+              <p className="text-sm text-gray-400 mb-3">{t('werewolf.devotedServantFollow')}</p>
               <div className="space-y-2">
                 {aliveAll
                   .filter((id) => id !== myUserId)
@@ -373,7 +405,7 @@ export function ActionPanel({
           {/* Impersonator: observe on round 1 */}
           {myRole === 'impersonator' && round === 1 && !hasActed && (
             <div>
-              <p className="text-sm text-gray-400 mb-3">🎭 Quan sát một người đêm nay:</p>
+              <p className="text-sm text-gray-400 mb-3">{t('werewolf.impersonatorObserve')}</p>
               <div className="space-y-2">
                 {aliveAll
                   .filter((id) => id !== myUserId)
@@ -393,33 +425,21 @@ export function ActionPanel({
           {/* Avenger: choose side on round 1 */}
           {myRole === 'avenger' && round === 1 && myTeam === 'third_party' && !hasActed && (
             <div>
-              <p className="text-sm text-gray-400 mb-3">⚔️ Chọn phe muốn tiêu diệt:</p>
+              <p className="text-sm text-gray-400 mb-3">{t('werewolf.avengerChooseSide')}</p>
               <div className="flex gap-2">
                 <button
                   onClick={() => doAction('avenger_choose', 'village')}
                   className="flex-1 px-3 py-2 bg-green-900 hover:bg-green-800 rounded-lg text-sm text-green-100 transition"
                 >
-                  🏘 Làng
+                  {t('werewolf.sideVillage')}
                 </button>
                 <button
                   onClick={() => doAction('avenger_choose', 'werewolf')}
                   className="flex-1 px-3 py-2 bg-red-800 hover:bg-red-700 rounded-lg text-sm text-red-100 transition"
                 >
-                  🐺 Sói
+                  {t('werewolf.sideWolf')}
                 </button>
               </div>
-            </div>
-          )}
-
-          {/* Little Girl: peek on round >= 2 */}
-          {myRole === 'little_girl' && round >= 2 && !hasActed && (
-            <div>
-              <button
-                onClick={() => doAction('little_girl_peek')}
-                className="w-full text-left px-3 py-2 bg-pink-900 hover:bg-pink-800 rounded-lg text-sm text-pink-100 transition"
-              >
-                👁 Nhòm trộm sói
-              </button>
             </div>
           )}
 
@@ -444,7 +464,7 @@ export function ActionPanel({
                 onClick={() => doAction('stuttering_judge_signal')}
                 className="w-full text-left px-3 py-2 bg-yellow-900 hover:bg-yellow-800 rounded-lg text-sm text-yellow-100 transition"
               >
-                ⚖️ Kích hoạt bỏ phiếu thứ 2
+                {t('werewolf.stutteringJudgeActivate')}
               </button>
             </div>
           )}
@@ -507,6 +527,7 @@ function WitchActionPanel({
   getUsername: (id: string) => string;
   doAction: (action: string, targetId?: string) => void;
 }) {
+  const { t } = useTranslation();
   const [saveTarget, setSaveTarget] = useState<string | null>(null);
   const [poisonTarget, setPoisonTarget] = useState<string | null>(null);
 
@@ -527,9 +548,9 @@ function WitchActionPanel({
       {!witchSaveUsed && (
         <div>
           {saveTarget !== null ? (
-            <p className="text-emerald-400 text-sm mb-3">💚 Cứu: {getUsername(saveTarget)}</p>
+            <p className="text-emerald-400 text-sm mb-3">{t('werewolf.witchSaveSelected', { name: getUsername(saveTarget) })}</p>
           ) : (
-            <p className="text-sm text-gray-400 mb-3">💚 Chọn người để cứu</p>
+            <p className="text-sm text-gray-400 mb-3">{t('werewolf.witchPickSave')}</p>
           )}
           <div className="space-y-2">
             {aliveAll.map((id) => (
@@ -548,9 +569,9 @@ function WitchActionPanel({
       {!witchPoisonUsed && (
         <div>
           {poisonTarget !== null ? (
-            <p className="text-fuchsia-400 text-sm mb-3">☠ Đầu độc: {getUsername(poisonTarget)}</p>
+            <p className="text-fuchsia-400 text-sm mb-3">{t('werewolf.witchPoisonSelected', { name: getUsername(poisonTarget) })}</p>
           ) : (
-            <p className="text-sm text-gray-400 mb-3">☠ Chọn người để đầu độc</p>
+            <p className="text-sm text-gray-400 mb-3">{t('werewolf.witchPickPoison')}</p>
           )}
           <div className="space-y-2">
             {aliveAll

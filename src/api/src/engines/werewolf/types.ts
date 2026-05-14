@@ -10,7 +10,6 @@ export type Role =
   | 'hunter'
   | 'witch'
   | 'cupid'
-  | 'little_girl'
   | 'two_sisters'
   | 'three_brothers'
   | 'stuttering_judge'
@@ -54,7 +53,6 @@ export type Action =
   | 'stuttering_judge_signal'
   | 'avenger_target'
   | 'dog_wolf_choose'
-  | 'little_girl_peek'
   | 'big_bad_wolf_kill'
   | 'witch_skip'
   | 'sheriff_pass'
@@ -88,7 +86,6 @@ export interface NightActions {
   secondKill?: string;
   bigBadWolfKill?: string;
   dogWolfChoose?: 'village' | 'werewolf';
-  littleGirlPeeked?: boolean;
 }
 
 export interface WerewolfState {

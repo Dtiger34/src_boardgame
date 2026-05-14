@@ -9,6 +9,10 @@ export function GamePanel({ roomId }: { roomId: string }) {
   const result = useGameStore((s) => s.result);
   const drawOfferedBy = useGameStore((s) => s.drawOfferedBy);
   const resign = useGameStore((s) => s.resign);
+  const playAgain = useGameStore((s) => s.playAgain);
+  const leaveRoom = useGameStore((s) => s.leaveRoom);
+  const markReady = useGameStore((s) => s.markReady);
+  const room = useGameStore((s) => s.room);
   const socket = useSocketStore((s) => s.socket);
   const user = useAuthStore((s) => s.user);
 
@@ -37,7 +41,7 @@ export function GamePanel({ roomId }: { roomId: string }) {
       </div>
 
       {result && (
-        <div className="text-center p-3 rounded-lg bg-gray-800">
+        <div className="text-center p-3 rounded-lg bg-gray-800 flex flex-col gap-3">
           {result.isDraw ? (
             <p className="text-yellow-400 font-semibold">{t('game.resultDraw')}</p>
           ) : result.winner === user?.id ? (
@@ -45,6 +49,25 @@ export function GamePanel({ roomId }: { roomId: string }) {
           ) : (
             <p className="text-red-400 font-semibold">{t('game.resultLose')}</p>
           )}
+          <div className="flex flex-col gap-2">
+            {room && (
+              <button
+                onClick={() => {
+                  playAgain();
+                  markReady(room.id);
+                }}
+                className="w-full py-2 text-sm bg-green-700 hover:bg-green-600 rounded-lg transition-colors font-semibold"
+              >
+                {t('game.playAgain')}
+              </button>
+            )}
+            <button
+              onClick={() => roomId && leaveRoom(roomId)}
+              className="w-full py-2 text-sm border border-gray-600 hover:border-gray-400 rounded-lg transition-colors"
+            >
+              {t('game.leave')}
+            </button>
+          </div>
         </div>
       )}
 

@@ -1,3 +1,4 @@
+import 'dotenv/config'; // path overridden by DOTENV_CONFIG_PATH in package.json scripts
 import 'express-async-errors';
 import { createServer } from 'http';
 import express from 'express';
@@ -22,7 +23,10 @@ const httpServer = createServer(app);
 const PORT = process.env.PORT || 4000;
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000', credentials: true }));
+const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map((o) => o.trim());
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(rateLimit({ windowMs: 60_000, max: 200 }));
 app.use(express.json());
 

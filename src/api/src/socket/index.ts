@@ -7,7 +7,9 @@ import { registerChatHandlers } from './chat.handler';
 export function createSocketServer(httpServer: HttpServer) {
   const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
     cors: {
-      origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
+      origin: (process.env.CLIENT_ORIGIN || 'http://localhost:3000')
+        .split(',')
+        .map((o) => o.trim()),
       credentials: true,
     },
   });

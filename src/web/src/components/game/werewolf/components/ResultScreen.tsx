@@ -88,19 +88,19 @@ export function ResultScreen({
   }
 
   const EVENT_TEXT: Record<GameEventType, (e: GameEvent) => string> = {
-    killed_by_wolves: (e) => `🐺 ${getName(e.userId)} bị sói giết`,
-    killed_by_witch: (e) => `🧙 ${getName(e.userId)} bị phù thủy đầu độc`,
-    executed: (e) => `⚖️ ${getName(e.userId)} bị làng treo cổ`,
-    protected: (e) => `💊 ${getName(e.userId)} được bác sĩ bảo vệ`,
-    no_execute: () => `⚖️ Làng không đạt đủ phiếu, không treo cổ ai`,
-    lover_died: (e) => `💔 ${getName(e.userId)} chết theo người yêu`,
-    wolf_father_converted: (e) => `🦴 ${getName(e.userId)} bị Wolf Father chiêu mộ`,
-    cursed_converted: (e) => `💀 ${getName(e.userId)} (Nguyền Rủa) biến thành sói`,
-    rusty_knight_wolf_dies: (e) => `🗡️ Sói ${getName(e.userId)} chết vì hiệu ứng Hiệp sĩ Gỉ`,
-    white_wolf_kills: (e) => `🤍 White Wolf tiêu diệt ${getName(e.userId)}`,
-    fool_revealed: (e) => `🤪 ${getName(e.userId)} (Ngốc) lộ mặt, không bị giết`,
-    hunter_kills: (e) => `🏹 Thợ săn ${getName(e.extra ?? '')} kéo theo ${getName(e.userId)}`,
-    wild_child_converted: (e) => `🌿 ${getName(e.userId)} (Đứa trẻ hoang) đổi phe sói`,
+    killed_by_wolves: (e) => t('werewolf.eventKilledByWolves', { name: getName(e.userId) }),
+    killed_by_witch: (e) => t('werewolf.eventKilledByWitch', { name: getName(e.userId) }),
+    executed: (e) => t('werewolf.eventExecuted', { name: getName(e.userId) }),
+    protected: (e) => t('werewolf.eventProtected', { name: getName(e.userId) }),
+    no_execute: () => t('werewolf.eventNoExecute'),
+    lover_died: (e) => t('werewolf.eventLoverDied', { name: getName(e.userId) }),
+    wolf_father_converted: (e) => t('werewolf.eventWolfFatherConverted', { name: getName(e.userId) }),
+    cursed_converted: (e) => t('werewolf.eventCursedConverted', { name: getName(e.userId) }),
+    rusty_knight_wolf_dies: (e) => t('werewolf.eventRustyKnightWolfDies', { name: getName(e.userId) }),
+    white_wolf_kills: (e) => t('werewolf.eventWhiteWolfKills', { name: getName(e.userId) }),
+    fool_revealed: (e) => t('werewolf.eventFoolRevealed', { name: getName(e.userId) }),
+    hunter_kills: (e) => t('werewolf.eventHunterKills', { shooter: getName(e.extra ?? ''), name: getName(e.userId) }),
+    wild_child_converted: (e) => t('werewolf.eventWildChildConverted', { name: getName(e.userId) }),
   };
 
   const rounds = Array.from(new Set(eventLog.map((e) => e.round))).sort((a, b) => a - b);
@@ -121,7 +121,7 @@ export function ResultScreen({
 
         {/* Vai trò từng người */}
         <div className="bg-gray-800 rounded-xl p-4">
-          <div className="text-sm font-semibold text-gray-300 mb-3">Vai trò từng người</div>
+          <div className="text-sm font-semibold text-gray-300 mb-3">{t('werewolf.resultRolesTitle')}</div>
           <div className="space-y-2">
             {allPlayers.map((p) => {
               const role = getRole(p.userId);
@@ -136,12 +136,12 @@ export function ResultScreen({
                       {p.userId === myUserId && <span className="text-indigo-400 ml-1">★</span>}
                     </span>
                     {alive ? (
-                      <span className="text-xs text-green-500 shrink-0">sống</span>
+                      <span className="text-xs text-green-500 shrink-0">{t('werewolf.resultAlive')}</span>
                     ) : (
                       <span className="text-xs text-red-500 shrink-0">☠</span>
                     )}
                   </div>
-                  {role ? roleChip(role) : <span className="text-xs text-gray-600 italic">ẩn</span>}
+                  {role ? roleChip(role) : <span className="text-xs text-gray-600 italic">{t('werewolf.resultHidden')}</span>}
                 </div>
               );
             })}
@@ -150,9 +150,9 @@ export function ResultScreen({
 
         {/* Diễn biến ván */}
         <div className="bg-gray-800 rounded-xl p-4">
-          <div className="text-sm font-semibold text-gray-300 mb-3">Diễn biến ván</div>
+          <div className="text-sm font-semibold text-gray-300 mb-3">{t('werewolf.resultEventTitle')}</div>
           {rounds.length === 0 ? (
-            <p className="text-xs text-gray-500">Không có sự kiện nào được ghi lại.</p>
+            <p className="text-xs text-gray-500">{t('werewolf.resultNoEvents')}</p>
           ) : (
             <div className="space-y-5">
               {rounds.map((round) => {
@@ -162,12 +162,12 @@ export function ResultScreen({
                 return (
                   <div key={round}>
                     <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">
-                      Vòng {round}
+                      {t('werewolf.resultRound', { n: round })}
                     </div>
                     <div className="pl-2 space-y-3">
                       {nightEvents.length > 0 && (
                         <div>
-                          <div className="text-xs text-indigo-400 font-semibold mb-1">🌙 Đêm</div>
+                          <div className="text-xs text-indigo-400 font-semibold mb-1">{t('werewolf.resultNight')}</div>
                           <div className="space-y-1 pl-3 border-l-2 border-indigo-900">
                             {nightEvents.map((e, i) => (
                               <div key={i} className="text-sm text-gray-200">
@@ -179,7 +179,7 @@ export function ResultScreen({
                       )}
                       {dayEvents.length > 0 && (
                         <div>
-                          <div className="text-xs text-yellow-400 font-semibold mb-1">☀️ Ngày</div>
+                          <div className="text-xs text-yellow-400 font-semibold mb-1">{t('werewolf.resultDay')}</div>
                           <div className="space-y-1 pl-3 border-l-2 border-yellow-900">
                             {dayEvents.map((e, i) => (
                               <div key={i} className="text-sm text-gray-200">

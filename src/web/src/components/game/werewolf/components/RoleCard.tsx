@@ -13,6 +13,9 @@ interface RoleCardProps {
   investigateTarget?: string;
   isSeer: boolean;
   isSheriff: boolean;
+  sisterIds?: string[];
+  brotherIds?: string[];
+  round: number;
 }
 
 export function RoleCard({
@@ -27,6 +30,9 @@ export function RoleCard({
   investigateTarget,
   isSeer,
   isSheriff,
+  sisterIds,
+  brotherIds,
+  round,
 }: RoleCardProps) {
   const { t } = useTranslation();
 
@@ -56,7 +62,7 @@ export function RoleCard({
               style={{ backfaceVisibility: 'hidden' }}
             >
               <span className="text-3xl">🂠</span>
-              <span className="text-xs text-gray-400">Giữ để xem</span>
+              <span className="text-xs text-gray-400">{t('werewolf.holdToReveal')}</span>
             </div>
             {/* Mặt trước (role) */}
             <div
@@ -88,6 +94,30 @@ export function RoleCard({
             {wolfTeamIds.map((wid) => (
               <span key={wid} className="text-xs bg-red-900 text-red-200 px-2 py-0.5 rounded-full">
                 {getUsername(wid)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {round === 1 && sisterIds && sisterIds.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-gray-700">
+          <p className="text-xs text-pink-400 font-semibold">{t('werewolf.sisterLabel')}</p>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {sisterIds.filter((id) => id !== undefined).map((sid) => (
+              <span key={sid} className="text-xs bg-pink-900 text-pink-200 px-2 py-0.5 rounded-full">
+                {getUsername(sid)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {round === 1 && brotherIds && brotherIds.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-gray-700">
+          <p className="text-xs text-blue-400 font-semibold">{t('werewolf.brotherLabel')}</p>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {brotherIds.filter((id) => id !== undefined).map((bid) => (
+              <span key={bid} className="text-xs bg-blue-900 text-blue-200 px-2 py-0.5 rounded-full">
+                {getUsername(bid)}
               </span>
             ))}
           </div>

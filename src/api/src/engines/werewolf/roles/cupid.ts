@@ -27,11 +27,11 @@ export function resolveNight(state: WerewolfState): WerewolfState {
     const [a, b] = na.cupidPair;
     const pa = state.players.find((p) => p.userId === a);
     const pb = state.players.find((p) => p.userId === b);
-    if (pa && pb && pa.team !== pb.team) {
+    if (pa && pb) {
       pa.team = 'third_party';
       pb.team = 'third_party';
+      state.lovers = [a, b];
     }
-    state.lovers = [a, b];
   }
   return state;
 }

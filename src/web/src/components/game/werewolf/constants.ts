@@ -8,7 +8,6 @@ import imgSuicidal          from '@/public/image/werewolf/misanthropist.jpg';
 import imgHunter          from '@/public/image/werewolf/hunter.jpg';
 import imgWitch           from '@/public/image/werewolf/witch.jpg';
 import imgCupid           from '@/public/image/werewolf/cupid.jpg';
-import imgLittleGirl      from '@/public/image/werewolf/smallgirl.jpg';
 import imgTwoSisters      from '@/public/image/werewolf/twosisters.jpg';
 import imgThreeBrothers   from '@/public/image/werewolf/threebrothers.jpg';
 import imgStutteringJudge from '@/public/image/werewolf/judge.jpg';
@@ -43,7 +42,6 @@ export const ROLE_IMAGES: Record<string, string> = {
   hunter:          imgHunter,
   witch:           imgWitch,
   cupid:           imgCupid,
-  little_girl:     imgLittleGirl,
   two_sisters:     imgTwoSisters,
   three_brothers:  imgThreeBrothers,
   stuttering_judge: imgStutteringJudge,
@@ -76,7 +74,6 @@ export const ROLE_CARD_STYLES: Record<string, string> = {
   hunter:           'bg-lime-950   border-lime-700',
   witch:            'bg-teal-950   border-teal-700',
   cupid:            'bg-pink-950   border-pink-600',
-  little_girl:      'bg-rose-950   border-rose-700',
   two_sisters:      'bg-green-950  border-green-700',
   three_brothers:   'bg-green-950  border-green-700',
   stuttering_judge: 'bg-amber-950  border-amber-700',
@@ -114,7 +111,6 @@ export const ROLE_ICONS: Record<string, string> = {
   hunter:           '🏹',
   witch:            '🧙',
   cupid:            '💘',
-  little_girl:      '👧',
   two_sisters:      '👭',
   three_brothers:   '👬',
   stuttering_judge: '⚖️',
