@@ -1,4 +1,4 @@
-import { GamePlayer } from '@boardgame/types';
+import type { GamePlayer } from '@boardgame/types';
 import { AppError } from '../middleware/error-handler';
 
 export interface GameEngine {

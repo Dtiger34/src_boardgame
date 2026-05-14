@@ -6,4 +6,6 @@ export const redis = createClient({
 });
 
 redis.on('error', (err) => logger.error('Redis error', err));
-redis.connect();
+void redis.connect().catch((err) => {
+  logger.warn('Redis unavailable at startup; continuing without Redis', err);
+});

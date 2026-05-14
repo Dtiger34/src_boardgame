@@ -6,6 +6,7 @@ export type WerewolfPrivateInfo = {
   wolfTeam: string[];
   investigateResult?: boolean;
   investigateTarget?: string;
+  wolfVotes?: Record<string, string>;
 };
 
 export type GameCatalogEntry = {
@@ -59,6 +60,7 @@ export interface GameResult {
   isDraw: boolean;
   reason: 'checkmate' | 'timeout' | 'resignation' | 'draw_agreement' | 'abandon' | string;
   ratingChanges: Record<UUID, number>;
+  allRoles?: Record<UUID, string>;
 }
 
 export interface GameRoom {
@@ -71,4 +73,5 @@ export interface GameRoom {
   createdBy: UUID;
   players: GamePlayer[];
   status: GameStatus;
+  customRoles?: Record<string, number>;
 }

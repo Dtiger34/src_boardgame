@@ -40,6 +40,13 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     socket.on('chat:message', (msg) => useGameStore.getState().addMessage(msg));
     socket.on('chat:wolf_message', (msg) => useGameStore.getState().addWolfMessage(msg));
     socket.on('game:private_info', (info) => useGameStore.getState().setPrivateInfo(info));
+    socket.on('error', (err) => {
+      const message =
+        typeof err?.message === 'string' && err.message.trim().length > 0
+          ? err.message
+          : 'Action failed';
+      useGameStore.getState().setRealtimeError(message);
+    });
   },
   disconnect: () => {
     connecting = false;

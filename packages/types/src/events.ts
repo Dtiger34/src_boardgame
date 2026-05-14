@@ -15,6 +15,7 @@ export interface ClientToServerEvents {
   'chat:message': (payload: { roomId: UUID; content: string }) => void;
   'chat:wolf_message': (payload: { roomId: UUID; content: string }) => void;
   'werewolf:skip_phase': (roomId: UUID) => void;
+  'werewolf:set_roles': (payload: { roomId: UUID; roles: Record<string, number> }) => void;
   'matchmaking:join': (gameType: string) => void;
   'matchmaking:leave': () => void;
 }
@@ -31,9 +32,19 @@ export interface ServerToClientEvents {
   'game:timer_update': (timers: Record<UUID, number>) => void;
   'matchmaking:matched': (room: GameRoom) => void;
   'matchmaking:queue_position': (position: number) => void;
-  'chat:message': (payload: { userId: UUID; username: string; content: string; timestamp: number }) => void;
-  'chat:wolf_message': (payload: { userId: UUID; username: string; content: string; timestamp: number }) => void;
-  'error': (payload: { code: string; message: string }) => void;
+  'chat:message': (payload: {
+    userId: UUID;
+    username: string;
+    content: string;
+    timestamp: number;
+  }) => void;
+  'chat:wolf_message': (payload: {
+    userId: UUID;
+    username: string;
+    content: string;
+    timestamp: number;
+  }) => void;
+  error: (payload: { code: string; message: string }) => void;
   'game:private_info': (info: WerewolfPrivateInfo) => void;
 }
 

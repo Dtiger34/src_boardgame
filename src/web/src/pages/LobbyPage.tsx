@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
 import type { GameCatalogEntry, GameRoom } from '@boardgame/types';
@@ -17,18 +17,35 @@ export function LobbyPage() {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: catalog = [] } = useQuery<GameCatalogEntry[]>({
     queryKey: ['catalog'],
     queryFn: () => api.get('/catalog').then((r) => r.data.data),
   });
 
+  useEffect(() => {
+    if (catalog.length === 0) return;
+    if (!catalog.some((g) => g.gameType === gameType)) {
+      setGameType(catalog[0].gameType);
+    }
+  }, [catalog, gameType]);
+
   const { data: publicRooms = [], refetch: refetchRooms } = useQuery<GameRoom[]>({
     queryKey: ['rooms:public'],
     queryFn: () => api.get('/games/rooms').then((r) => r.data.data),
     refetchInterval: 5000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    staleTime: 0,
     enabled: tab === 'public',
   });
+
+  useEffect(() => {
+    if (tab !== 'public') return;
+    queryClient.removeQueries({ queryKey: ['rooms:public'] });
+    refetchRooms();
+  }, [tab, queryClient, refetchRooms]);
 
   if (!user) return null;
 
@@ -37,13 +54,21 @@ export function LobbyPage() {
   }
 
   async function createRoom() {
+    if (!catalog.some((g) => g.gameType === gameType)) {
+      setError(t('lobby.errCreate'));
+      return;
+    }
     setError('');
     setLoading(true);
     try {
       const { data } = await api.post('/games/rooms', { gameType, isPrivate: false });
       await enterRoom(data.data.id);
-    } catch {
-      setError(t('lobby.errCreate'));
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { error?: string; message?: string } } };
+      const errCode = err.response?.data?.error;
+      if (errCode === 'UNAUTHORIZED') setError(t('lobby.errJoin'));
+      else if (errCode === 'UNKNOWN_GAME_TYPE') setError(t('lobby.errCreate'));
+      else setError(err.response?.data?.message || t('lobby.errCreate'));
     } finally {
       setLoading(false);
     }

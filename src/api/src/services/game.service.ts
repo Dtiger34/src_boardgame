@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { GameState, GameRoom, GameResult, WerewolfPrivateInfo } from '@boardgame/types';
+import type { GameState, GameRoom, GameResult, WerewolfPrivateInfo } from '@boardgame/types';
 import { db } from '../db';
 import { redis } from '../redis';
 import { EngineRegistry } from '../engines/registry';
@@ -24,6 +24,9 @@ export const GameService = {
     createdBy: string;
     username: string;
   }): Promise<GameRoom> {
+    // Validate game type early so invalid rooms are never created.
+    EngineRegistry.get(opts.gameType);
+
     const inviteCode = uuidv4().split('-')[0].toUpperCase();
     const maxPlayers = opts.gameType === 'werewolf' ? 18 : 2;
     const room: GameRoom = {
@@ -34,13 +37,15 @@ export const GameService = {
       maxPlayers,
       timeControlMs: opts.timeControlMs,
       createdBy: opts.createdBy,
-      players: [{
-        userId: opts.createdBy,
-        username: opts.username,
-        color: 'black',
-        timeLeftMs: opts.timeControlMs ?? 0,
-        isConnected: true,
-      }],
+      players: [
+        {
+          userId: opts.createdBy,
+          username: opts.username,
+          color: 'black',
+          timeLeftMs: opts.timeControlMs ?? 0,
+          isConnected: true,
+        },
+      ],
       status: 'waiting',
     };
     await redis.set(`room:${room.id}`, JSON.stringify(room), { EX: TTL });
@@ -61,7 +66,8 @@ export const GameService = {
     const room = await GameService.getRoom(roomId);
     if (room.status !== 'waiting') throw new AppError('ROOM_NOT_OPEN', 'Room is not open', 400);
     if (room.players.find((p) => p.userId === userId)) return room;
-    if (room.players.length >= room.maxPlayers) throw new AppError('ROOM_FULL', 'Room is full', 400);
+    if (room.players.length >= room.maxPlayers)
+      throw new AppError('ROOM_FULL', 'Room is full', 400);
 
     room.players.push({
       userId,
@@ -109,13 +115,57 @@ export const GameService = {
     return room;
   },
 
+  async resetReadyStates(roomId: string): Promise<GameRoom | null> {
+    const raw = await redis.get(`room:${roomId}`);
+    if (!raw) return null;
+    const room = JSON.parse(raw) as GameRoom;
+    for (const p of room.players) p.isReady = false;
+    await redis.set(`room:${roomId}`, JSON.stringify(room), { EX: TTL });
+    return room;
+  },
+
+  async setCustomRoles(
+    roomId: string,
+    userId: string,
+    roles: Record<string, number>,
+  ): Promise<GameRoom> {
+    const room = await GameService.getRoom(roomId);
+    if (room.createdBy !== userId) throw new AppError('FORBIDDEN', 'Only host can set roles', 403);
+    if (room.status !== 'waiting') throw new AppError('ROOM_NOT_OPEN', 'Room is not open', 400);
+    const total = Object.values(roles).reduce((s, n) => s + n, 0);
+    if (total > room.maxPlayers)
+      throw new AppError('TOO_MANY_ROLES', 'Role count exceeds max players', 400);
+    room.customRoles = total === 0 ? undefined : roles;
+    await redis.set(`room:${roomId}`, JSON.stringify(room), { EX: TTL });
+    return room;
+  },
+
   async listPublicRooms(): Promise<GameRoom[]> {
     const ids = await redis.sMembers('rooms:public');
     if (ids.length === 0) return [];
     const raws = await Promise.all(ids.map((id) => redis.get(`room:${id}`)));
-    return raws
-      .filter((r): r is string => r !== null)
-      .map((r) => JSON.parse(r) as GameRoom);
+    const staleIds: string[] = [];
+    const rooms: GameRoom[] = [];
+
+    for (let i = 0; i < ids.length; i += 1) {
+      const raw = raws[i];
+      if (!raw) {
+        staleIds.push(ids[i]);
+        continue;
+      }
+      const room = JSON.parse(raw) as GameRoom;
+      if (room.isPrivate || room.status !== 'waiting') {
+        staleIds.push(ids[i]);
+        continue;
+      }
+      rooms.push(room);
+    }
+
+    if (staleIds.length > 0) {
+      await redis.sRem('rooms:public', staleIds);
+    }
+
+    return rooms;
   },
 
   async startGame(roomId: string): Promise<GameState> {
@@ -131,7 +181,8 @@ export const GameService = {
       gameType: room.gameType,
       status: 'in_progress',
       players: room.players,
-      boardState: engine.getInitialState(),
+      boardState:
+        room.gameType === 'werewolf' ? {} : engine.getInitialState(),
       moves: [],
       currentTurn: room.players[0].userId,
       createdAt: Date.now(),
@@ -141,7 +192,19 @@ export const GameService = {
     };
 
     if (room.gameType === 'werewolf') {
-      game.boardState = initWerewolfGame(room.players.map((p) => p.userId));
+      const playerIds = room.players.map((p) => p.userId);
+
+      if (room.customRoles) {
+        const total = Object.values(room.customRoles).reduce((s, n) => s + n, 0);
+        if (total !== playerIds.length) {
+          throw new AppError(
+            'ROLE_COUNT_MISMATCH',
+            `Custom roles total (${total}) must equal player count (${playerIds.length})`,
+            400,
+          );
+        }
+      }
+      game.boardState = initWerewolfGame(playerIds, room.customRoles);
     }
 
     room.status = 'in_progress';
@@ -150,10 +213,12 @@ export const GameService = {
     await redis.set(`game:${roomId}`, JSON.stringify(game), { EX: TTL });
 
     // DB logging is best-effort — game runs entirely on Redis
-    db.query(
-      'INSERT INTO games (id, game_type, room_id, status) VALUES ($1, $2, $3, $4)',
-      [game.id, game.gameType, roomId, 'in_progress'],
-    ).catch(() => {});
+    db.query('INSERT INTO games (id, game_type, room_id, status) VALUES ($1, $2, $3, $4)', [
+      game.id,
+      game.gameType,
+      roomId,
+      'in_progress',
+    ]).catch(() => {});
 
     return game;
   },
@@ -187,7 +252,7 @@ export const GameService = {
       newState = resolveNight(state);
     } else if (state.phase === 'day_discussion') {
       newState = {
-        ...structuredClone(state) as WerewolfState,
+        ...(structuredClone(state) as WerewolfState),
         phase: 'day_vote',
         phaseEndsAt: Date.now() + PHASE_DURATION.day_vote,
       };
@@ -223,7 +288,11 @@ export const GameService = {
       }
 
       const engine = EngineRegistry.get(game.gameType);
-      const { newBoardState, isValid } = engine.validateAndApply(game.boardState, moveData, playerId);
+      const { newBoardState, isValid } = engine.validateAndApply(
+        game.boardState,
+        moveData,
+        playerId,
+      );
       if (!isValid) throw new AppError('INVALID_MOVE', 'Invalid move', 400);
 
       game.moves.push({ playerId, moveData, timestamp: Date.now(), moveIndex: game.moves.length });
@@ -278,7 +347,9 @@ export const GameService = {
 
     await redis.set(`game:${roomId}`, JSON.stringify(game), { EX: TTL });
     db.query('UPDATE games SET status = $1, winner_id = $2, finished_at = NOW() WHERE id = $3', [
-      'finished', winner.userId, game.id,
+      'finished',
+      winner.userId,
+      game.id,
     ]).catch(() => {});
     return result;
   },

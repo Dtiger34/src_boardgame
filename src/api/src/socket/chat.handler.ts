@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
+import type { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
 import { GameService } from '../services/game.service';
 import { WerewolfState } from '../engines/werewolf';
 

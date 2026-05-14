@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
+import type { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
 import { GameService } from '../services/game.service';
 import { UserService } from '../services/user.service';
 import { schedulePhase, clearPhaseTimer, skipPhase } from './werewolf-phase';
@@ -66,14 +66,34 @@ export function registerGameHandlers(io: IO, socket: Socket) {
 
   socket.on('game:start', async (roomId) => {
     const room = await GameService.getRoom(roomId).catch(() => null);
-    if (!room) return;
+    if (!room) {
+      logger.warn('game:start rejected - room not found', { roomId, userId });
+      return;
+    }
+    logger.info('game:start requested', {
+      roomId,
+      userId,
+      gameType: room.gameType,
+      players: room.players.length,
+      createdBy: room.createdBy,
+    });
     if (room.createdBy !== userId) {
+      logger.warn('game:start rejected - forbidden', { roomId, userId, createdBy: room.createdBy });
       socket.emit('error', { code: 'FORBIDDEN', message: 'Only host can start the game' });
       return;
     }
     const minPlayers = room.gameType === 'werewolf' ? 4 : 2;
     if (room.players.length < minPlayers) {
-      socket.emit('error', { code: 'NOT_ENOUGH_PLAYERS', message: `Need at least ${minPlayers} players` });
+      logger.warn('game:start rejected - not enough players', {
+        roomId,
+        gameType: room.gameType,
+        players: room.players.length,
+        minPlayers,
+      });
+      socket.emit('error', {
+        code: 'NOT_ENOUGH_PLAYERS',
+        message: `Need at least ${minPlayers} players`,
+      });
       return;
     }
     try {
@@ -100,8 +120,16 @@ export function registerGameHandlers(io: IO, socket: Socket) {
           io.to(`user:${player.userId}`).emit('game:state', game);
         }
       }
+      logger.info('game:start success', { roomId, gameType: room.gameType, players: room.players.length });
     } catch (err: unknown) {
       const e = err as { code?: string; message: string };
+      logger.error('game:start failed', {
+        roomId,
+        userId,
+        gameType: room.gameType,
+        code: e.code || 'START_ERROR',
+        message: e.message,
+      });
       socket.emit('error', { code: e.code || 'START_ERROR', message: e.message });
     }
   });
@@ -119,9 +147,8 @@ export function registerGameHandlers(io: IO, socket: Socket) {
   socket.on('game:move', async ({ roomId, moveData }) => {
     try {
       const gameBefore = await GameService.getGame(roomId);
-      const phaseBefore = gameBefore?.gameType === 'werewolf'
-        ? (gameBefore.boardState as WerewolfState).phase
-        : null;
+      const phaseBefore =
+        gameBefore?.gameType === 'werewolf' ? (gameBefore.boardState as WerewolfState).phase : null;
 
       const { game, result } = await GameService.applyMove(roomId, userId, moveData);
 
@@ -136,7 +163,12 @@ export function registerGameHandlers(io: IO, socket: Socket) {
         const phaseAfter = (game.boardState as WerewolfState).phase;
         if (result) {
           clearPhaseTimer(roomId);
-          io.to(`room:${roomId}`).emit('game:result', result);
+          const wsState = game.boardState as WerewolfState;
+          const allRoles: Record<string, string> = {};
+          for (const p of wsState.players) allRoles[p.userId] = p.role;
+          io.to(`room:${roomId}`).emit('game:result', { ...result, allRoles });
+          const updatedRoom = await GameService.resetReadyStates(roomId);
+          if (updatedRoom) io.to(`room:${roomId}`).emit('game:room_update', updatedRoom);
         } else if (phaseBefore !== phaseAfter) {
           // Phase changed due to all-done auto-resolve; broadcast new state and reschedule timer
           const publicGame = GameService.scrubGameState(game);
@@ -160,6 +192,17 @@ export function registerGameHandlers(io: IO, socket: Socket) {
     } catch (err: unknown) {
       const e = err as { code?: string; message: string };
       socket.emit('error', { code: e.code || 'MOVE_ERROR', message: e.message });
+    }
+  });
+
+  socket.on('werewolf:set_roles', async ({ roomId, roles }) => {
+    try {
+      const room = await GameService.setCustomRoles(roomId, userId, roles);
+      io.to(`room:${roomId}`).emit('game:room_update', room);
+    } catch (err: unknown) {
+      const e = err as { code?: string; message: string };
+      console.error('[werewolf:set_roles] error:', e.message);
+      socket.emit('error', { code: e.code || 'SET_ROLES_ERROR', message: e.message });
     }
   });
 
@@ -199,6 +242,8 @@ export function registerGameHandlers(io: IO, socket: Socket) {
   });
 
   socket.on('game:decline_draw', (roomId) => {
-    socket.to(`room:${roomId}`).emit('error', { code: 'DRAW_DECLINED', message: 'Draw offer declined' });
+    socket
+      .to(`room:${roomId}`)
+      .emit('error', { code: 'DRAW_DECLINED', message: 'Draw offer declined' });
   });
 }

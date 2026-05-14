@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '@/store/game';
 import { useAuthStore } from '@/store/auth';
+import { useRoleLabel } from '@/components/game/werewolf/hooks/useRoleLabel';
+import { RoleConfigPanel } from './RoleConfigPanel';
 
 interface Props {
   roomId: string;
@@ -11,8 +13,10 @@ export function RoomLobby({ roomId }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const room = useGameStore((s) => s.room);
-  const { markReady, startGame, leaveRoom } = useGameStore();
+  const realtimeError = useGameStore((s) => s.realtimeError);
+  const { markReady, startGame, leaveRoom, setCustomRoles } = useGameStore();
   const user = useAuthStore((s) => s.user);
+  const { roleLabel } = useRoleLabel();
 
   function handleLeave() {
     leaveRoom(roomId);
@@ -33,15 +37,29 @@ export function RoomLobby({ roomId }: Props) {
   const isHost = user?.id === room.createdBy;
   const me = room.players.find((p) => p.userId === user?.id);
 
+  const customTotal = room.customRoles
+    ? Object.values(room.customRoles).reduce((s, n) => s + n, 0)
+    : 0;
+  const rolesMatchPlayers = room.customRoles ? customTotal === room.players.length : true;
+  const startDisabled =
+    room.players.length < (room.gameType === 'werewolf' ? 4 : 2) ||
+    (!!room.customRoles && !rolesMatchPlayers);
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-6">
       <div className="bg-gray-900 rounded-2xl shadow-xl w-full max-w-md p-8 space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white">{room.gameType.toUpperCase()}</h1>
           <p className="text-gray-400 text-sm mt-1">
-            {t('roomLobby.roomCode')}: <span className="font-mono text-yellow-400">{room.inviteCode}</span>
+            {t('roomLobby.roomCode')}:{' '}
+            <span className="font-mono text-yellow-400">{room.inviteCode}</span>
           </p>
         </div>
+        {realtimeError && (
+          <p className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+            {realtimeError}
+          </p>
+        )}
 
         <div>
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
@@ -87,15 +105,35 @@ export function RoomLobby({ roomId }: Props) {
           </div>
         </div>
 
+        {room.gameType === 'werewolf' && (
+          <RoleConfigPanel
+            playerCount={room.players.length}
+            customRoles={room.customRoles}
+            isHost={isHost}
+            roleLabel={roleLabel}
+            onSave={(roles) => setCustomRoles(roomId, roles)}
+          />
+        )}
+
         <div className="pt-2 space-y-3">
           {isHost ? (
-            <button
-              onClick={() => startGame(roomId)}
-              disabled={room.players.length < (room.gameType === 'werewolf' ? 4 : 2)}
-              className="w-full py-3 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >
-              {t('roomLobby.start')}
-            </button>
+            <>
+              <button
+                onClick={() => startGame(roomId)}
+                disabled={startDisabled}
+                className="w-full py-3 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                {t('roomLobby.start')}
+              </button>
+              {room.customRoles && !rolesMatchPlayers && (
+                <p className="text-xs text-red-400 text-center">
+                  {t('roomLobby.roleMismatch', {
+                    total: customTotal,
+                    players: room.players.length,
+                  })}
+                </p>
+              )}
+            </>
           ) : (
             <button
               onClick={() => markReady(roomId)}

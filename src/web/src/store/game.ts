@@ -17,6 +17,7 @@ interface GameStore {
   messages: ChatMessage[];
   wolfMessages: ChatMessage[];
   privateInfo: WerewolfPrivateInfo | null;
+  realtimeError: string | null;
   addMessage: (msg: ChatMessage) => void;
   addWolfMessage: (msg: ChatMessage) => void;
   setRoom: (room: GameRoom) => void;
@@ -34,6 +35,8 @@ interface GameStore {
   sendWolfChat: (roomId: string, content: string) => void;
   resign: (roomId: string) => void;
   skipPhase: (roomId: string) => void;
+  setCustomRoles: (roomId: string, roles: Record<string, number>) => void;
+  setRealtimeError: (message: string | null) => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -44,28 +47,56 @@ export const useGameStore = create<GameStore>((set) => ({
   messages: [],
   wolfMessages: [],
   privateInfo: null,
+  realtimeError: null,
   setRoom: (room) => set({ room }),
   setGameState: (gameState) => set({ gameState }),
   setResult: (result) => set({ result }),
   setDrawOffer: (drawOfferedBy) => set({ drawOfferedBy }),
   setPrivateInfo: (privateInfo) => set({ privateInfo }),
+  setRealtimeError: (realtimeError) => set({ realtimeError }),
   addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
   addWolfMessage: (msg) => set((s) => ({ wolfMessages: [...s.wolfMessages, msg] })),
   joinRoom: (roomId) => {
-    set({ room: null, gameState: null, result: null, drawOfferedBy: null, messages: [], privateInfo: null });
+    set({
+      room: null,
+      gameState: null,
+      result: null,
+      drawOfferedBy: null,
+      messages: [],
+      privateInfo: null,
+      realtimeError: null,
+    });
     useSocketStore.getState().socket?.emit('game:join', roomId);
   },
   leaveRoom: (roomId) => {
     useSocketStore.getState().socket?.emit('game:leave', roomId);
-    set({ room: null, gameState: null, result: null, drawOfferedBy: null, messages: [], wolfMessages: [], privateInfo: null });
+    set({
+      room: null,
+      gameState: null,
+      result: null,
+      drawOfferedBy: null,
+      messages: [],
+      wolfMessages: [],
+      privateInfo: null,
+      realtimeError: null,
+    });
   },
   playAgain: () => {
-    set({ gameState: null, result: null, drawOfferedBy: null, privateInfo: null, wolfMessages: [] });
+    set({
+      gameState: null,
+      result: null,
+      drawOfferedBy: null,
+      privateInfo: null,
+      wolfMessages: [],
+      realtimeError: null,
+    });
   },
   markReady: (roomId) => {
+    set({ realtimeError: null });
     useSocketStore.getState().socket?.emit('game:ready', roomId);
   },
   startGame: (roomId) => {
+    set({ realtimeError: null });
     useSocketStore.getState().socket?.emit('game:start', roomId);
   },
   sendMove: (roomId, moveData) => {
@@ -82,5 +113,9 @@ export const useGameStore = create<GameStore>((set) => ({
   },
   skipPhase: (roomId) => {
     useSocketStore.getState().socket?.emit('werewolf:skip_phase', roomId);
+  },
+  setCustomRoles: (roomId, roles) => {
+    set({ realtimeError: null });
+    useSocketStore.getState().socket?.emit('werewolf:set_roles', { roomId, roles });
   },
 }));

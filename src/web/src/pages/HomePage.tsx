@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import type { GameCatalogEntry } from '@boardgame/types';
 
 function RulesModal({ game, onClose }: { game: GameCatalogEntry; onClose: () => void }) {
+  const { t } = useTranslation();
   const sections = game.rules.split(/(?=^## )/m).filter(Boolean);
 
   return (
@@ -40,7 +41,7 @@ function RulesModal({ game, onClose }: { game: GameCatalogEntry; onClose: () => 
             to="/login"
             className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-gray-950 font-semibold rounded-lg text-sm transition-colors"
           >
-            Play Now
+            {t('home.playNow')}
           </Link>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { GamePlayer } from '@boardgame/types';
+import type { GamePlayer } from '@boardgame/types';
 import { EngineRegistry, GameEngine } from './registry';
 
 const SIZE = 15;

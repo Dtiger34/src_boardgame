@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
-import { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
+import type { ClientToServerEvents, ServerToClientEvents } from '@boardgame/types';
 import { registerGameHandlers } from './game.handler';
 import { registerChatHandlers } from './chat.handler';
 
