@@ -120,9 +120,6 @@ export interface WerewolfState {
   wolfSorcererUses: number;
   disabledThisNight?: string;
 
-  // Hidden wolf — appear as non-wolf to seer for N rounds
-  hiddenWolfCamoRoundsLeft: number;
-
   // Elder — survives first bite; village loses abilities if lynched
   elderHits: number;
   elderPenaltyActive: boolean;

@@ -138,7 +138,7 @@ Thuộc phe sói. **Một lần** trong ván, có thể biến nạn nhân bị 
 
 ### Sói ẩn mình
 
-Có thể tàng hình trước Tiên tri — khi bị soi sẽ hiện kết quả "Không phải Sói" trong một số lượt nhất định.
+Có thể tàng hình trước Tiên tri — khi bị soi sẽ hiện kết quả "Không phải Sói".
 
 ---
 

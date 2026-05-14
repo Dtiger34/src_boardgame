@@ -16,6 +16,7 @@ export type WerewolfPrivateInfo = {
   hunterTarget?: string;
   thiefCards?: [string, string];
   wildChildModel?: string;
+  disabledByWolfSorcerer?: boolean;
 };
 
 export type GameCatalogEntry = {

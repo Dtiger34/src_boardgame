@@ -36,6 +36,7 @@ interface ActionPanelProps {
   stutteringJudgeUsed: boolean;
   thiefCards?: [string, string];
   round: number;
+  disabledByWolfSorcerer?: boolean;
 }
 
 export function ActionPanel({
@@ -73,6 +74,7 @@ export function ActionPanel({
   stutteringJudgeUsed,
   thiefCards,
   round,
+  disabledByWolfSorcerer,
 }: ActionPanelProps) {
   const { t } = useTranslation();
   const [cupidFirst, setCupidFirst] = useState<string | null>(null);
@@ -95,6 +97,11 @@ export function ActionPanel({
 
   return (
     <div className="bg-gray-900 rounded-2xl p-5 flex-1">
+      {phase === 'night' && isAlive && disabledByWolfSorcerer && (
+        <div className="mb-3 rounded-lg bg-purple-950 border border-purple-700 px-3 py-2 text-sm text-purple-300">
+          🔮 {t('werewolf.disabledByWolfSorcerer')}
+        </div>
+      )}
       {phase === 'night' && isAlive && (
         <>
           {isWolf && (
@@ -458,14 +465,20 @@ export function ActionPanel({
             {t('werewolf.waitingDiscussion', { s: countdown })}
           </p>
           {/* Stuttering Judge: trigger second vote */}
-          {myRole === 'stuttering_judge' && isAlive && !stutteringJudgeUsed && (
+          {myRole === 'stuttering_judge' && isAlive && (
             <div className="mt-3">
-              <button
-                onClick={() => doAction('stuttering_judge_signal')}
-                className="w-full text-left px-3 py-2 bg-yellow-900 hover:bg-yellow-800 rounded-lg text-sm text-yellow-100 transition"
-              >
-                {t('werewolf.stutteringJudgeActivate')}
-              </button>
+              {stutteringJudgeUsed ? (
+                <p className="text-xs text-yellow-400 text-center">
+                  ⚖️ {t('werewolf.stutteringJudgeActivated')}
+                </p>
+              ) : (
+                <button
+                  onClick={() => doAction('stuttering_judge_signal')}
+                  className="w-full text-left px-3 py-2 bg-yellow-900 hover:bg-yellow-800 rounded-lg text-sm text-yellow-100 transition"
+                >
+                  {t('werewolf.stutteringJudgeActivate')}
+                </button>
+              )}
             </div>
           )}
         </>

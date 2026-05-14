@@ -35,6 +35,11 @@ export function clearPhaseTimer(roomId: string): void {
 }
 
 async function handlePhaseExpire(io: IO, roomId: string): Promise<void> {
+  const gameBefore = await GameService.getGame(roomId);
+  const phaseBefore = gameBefore?.gameType === 'werewolf'
+    ? (gameBefore.boardState as WerewolfState).phase
+    : null;
+
   const game = await GameService.advancePhase(roomId);
   if (!game) return;
 
@@ -46,9 +51,12 @@ async function handlePhaseExpire(io: IO, roomId: string): Promise<void> {
     if (info) io.to(`user:${player.userId}`).emit('game:private_info', info);
   }
 
-  // Check win condition
+  // Only check win condition after phases that can kill players (resolveNight / resolveVote).
+  // Skipping the check for day_discussion→day_vote which is a pure timer advance with no kills.
+  const shouldCheckResult = phaseBefore === 'night' || phaseBefore === 'day_vote';
+
   const engine = EngineRegistry.get('werewolf');
-  const result = engine.checkResult(game.boardState, game.players);
+  const result = shouldCheckResult ? engine.checkResult(game.boardState, game.players) : null;
   if (result) {
     const state = game.boardState as WerewolfState;
     const allRoles: Record<string, string> = {};

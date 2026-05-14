@@ -14,9 +14,8 @@ export function validateAction(
     if (isAbilityDisabled(state, playerId)) return { newState: state, isValid: false };
     const target = state.players.find((p) => p.userId === targetId);
     if (!target || !target.isAlive) return { newState: state, isValid: false };
-    const isHiddenWolf = target.role === 'hidden_wolf' && state.hiddenWolfCamoRoundsLeft > 0;
     state.nightActions.investigate = targetId;
-    state.nightActions.investigateResult = target.team === 'werewolf' && !isHiddenWolf;
+    state.nightActions.investigateResult = target.team === 'werewolf' && target.role !== 'hidden_wolf';
     return { newState: state, isValid: true };
   }
 
@@ -28,9 +27,7 @@ export function resolveNight(state: WerewolfState): WerewolfState {
   if (na.investigate) {
     const target = state.players.find((p) => p.userId === na.investigate);
     if (target) {
-      const isHiddenWolf = target.role === 'hidden_wolf' && state.hiddenWolfCamoRoundsLeft > 0;
-      state.nightActions.investigateResult = target.team === 'werewolf' && !isHiddenWolf;
-      if (state.hiddenWolfCamoRoundsLeft > 0) state.hiddenWolfCamoRoundsLeft -= 1;
+      state.nightActions.investigateResult = target.team === 'werewolf' && target.role !== 'hidden_wolf';
     }
   }
   return state;

@@ -103,8 +103,8 @@ const WerewolfEngine: GameEngine = {
       ) {
         state.stutteringJudgeUsed = true;
         state.stutteringJudgeSignaledThisDay = true;
-        state.phase = 'day_vote';
-        state.phaseEndsAt = Date.now() + PHASE_DURATION.day_vote;
+        // Do NOT advance phase here — discussion continues until the timer expires.
+        // The flag causes two vote rounds after discussion ends.
         return { newBoardState: state, isValid: true };
       }
 

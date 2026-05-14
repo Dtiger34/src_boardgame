@@ -230,6 +230,7 @@ export function WerewolfGame({ roomId }: Props) {
           stutteringJudgeUsed={boardState.stutteringJudgeUsed}
           thiefCards={privateInfo?.thiefCards}
           round={boardState.round}
+          disabledByWolfSorcerer={privateInfo?.disabledByWolfSorcerer}
         />
 
         <WolfChatWrapper roomId={roomId} phase={phase!} isWolf={isWolf} />

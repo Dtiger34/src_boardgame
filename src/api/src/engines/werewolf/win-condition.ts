@@ -21,7 +21,7 @@ export function checkWinCondition(
     return { winner: rep?.userId, isDraw: false, reason: 'village_eliminated_wolves' };
   }
 
-  if (wolves.length >= villagers.length) {
+  if (wolves.length >= villagers.length && state.deadPlayers.length > 0) {
     const wolfRep = players.find((p) =>
       state.players.find((i) => i.userId === p.userId && i.team === 'werewolf' && i.isAlive),
     );

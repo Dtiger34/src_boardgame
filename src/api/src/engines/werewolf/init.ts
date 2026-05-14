@@ -48,7 +48,6 @@ export function initWerewolfGame(
     wolfCubNextDoubleKill: false,
     wolfFatherUsed: false,
     wolfSorcererUses: 0,
-    hiddenWolfCamoRoundsLeft: 3,
     elderHits: 0,
     elderPenaltyActive: false,
     wildChildConverted: false,
@@ -109,6 +108,7 @@ export function getPrivateInfo(
   wolfVotes?: Record<string, string>;
   sisterIds?: string[];
   brotherIds?: string[];
+  disabledByWolfSorcerer?: boolean;
 } | null {
   const me = state.players.find((p) => p.userId === userId);
   if (!me) return null;
@@ -150,5 +150,6 @@ export function getPrivateInfo(
     wolfVotes,
     sisterIds,
     brotherIds,
+    disabledByWolfSorcerer: state.disabledThisNight === userId || undefined,
   };
 }

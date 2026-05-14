@@ -257,7 +257,18 @@ export const GameService = {
         phaseEndsAt: Date.now() + PHASE_DURATION.day_vote,
       };
     } else if (state.phase === 'day_vote') {
-      newState = resolveVote(state);
+      const resolved = resolveVote(state);
+      // Stuttering judge second vote: if signaled and first vote not yet done, trigger second round
+      if (state.stutteringJudgeSignaledThisDay && !state.secondVoteTriggered) {
+        newState = {
+          ...(structuredClone(resolved) as WerewolfState),
+          secondVoteTriggered: true,
+          phase: 'day_vote',
+          phaseEndsAt: Date.now() + PHASE_DURATION.day_vote,
+        };
+      } else {
+        newState = resolved;
+      }
     } else {
       return null;
     }
@@ -295,6 +306,14 @@ export const GameService = {
       );
       if (!isValid) throw new AppError('INVALID_MOVE', 'Invalid move', 400);
 
+      // For werewolf, only check win condition when a phase transition happened inline
+      // (i.e. all players voted → resolveVote ran). Mid-night/discussion actions must not
+      // trigger the win check because no one has died yet and wolves could falsely "win"
+      // on equal counts. Phase-based win checks are handled in werewolf-phase.ts.
+      const phaseBefore = game.gameType === 'werewolf'
+        ? (game.boardState as import('../engines/werewolf/types').WerewolfState).phase
+        : null;
+
       game.moves.push({ playerId, moveData, timestamp: Date.now(), moveIndex: game.moves.length });
       game.boardState = newBoardState;
       game.updatedAt = Date.now();
@@ -304,8 +323,13 @@ export const GameService = {
         game.currentTurn = nextPlayer.userId;
       }
 
+      const phaseAfter = game.gameType === 'werewolf'
+        ? (newBoardState as import('../engines/werewolf/types').WerewolfState).phase
+        : null;
+      const shouldCheckResult = game.gameType !== 'werewolf' || phaseBefore !== phaseAfter;
+
       let result: GameResult | null = null;
-      const engineResult = engine.checkResult(newBoardState, game.players);
+      const engineResult = shouldCheckResult ? engine.checkResult(newBoardState, game.players) : null;
       if (engineResult) {
         game.status = 'finished';
         game.winner = engineResult.winner;
