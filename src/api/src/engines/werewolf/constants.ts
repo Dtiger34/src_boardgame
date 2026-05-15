@@ -12,7 +12,6 @@ export const ROLE_TEAMS: Record<Role, Team> = {
   three_brothers: 'village',
   stuttering_judge: 'village',
   rusty_knight: 'village',
-  devoted_servant: 'village',
   wild_child: 'village',
   fool: 'village',
   drunk: 'village',
@@ -35,7 +34,7 @@ export const ROLE_TEAMS: Record<Role, Team> = {
 
 export const VILLAGE_ROLES_WITH_NIGHT_ACTION: Role[] = [
   'seer', 'guard', 'sheriff', 'hunter', 'witch', 'cupid',
-  'devoted_servant', 'wild_child', 'impersonator',
+  'wild_child', 'impersonator',
 ];
 
 export const PHASE_DURATION: Record<Phase, number> = {

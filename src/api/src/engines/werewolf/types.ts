@@ -14,7 +14,6 @@ export type Role =
   | 'three_brothers'
   | 'stuttering_judge'
   | 'rusty_knight'
-  | 'devoted_servant'
   | 'wild_child'
   | 'fool'
   | 'drunk'
@@ -48,7 +47,6 @@ export type Action =
   | 'white_wolf_kill'
   | 'thief_choose'
   | 'wild_child_model'
-  | 'devoted_servant_follow'
   | 'impersonator_follow'
   | 'stuttering_judge_signal'
   | 'avenger_target'
@@ -81,7 +79,6 @@ export interface NightActions {
   cupidPair?: [string, string];
   thiefChoice?: string;
   wildChildModel?: string;
-  devotedServantFollow?: string;
   impersonatorFollow?: string;
   secondKill?: string;
   bigBadWolfKill?: string;
@@ -127,9 +124,6 @@ export interface WerewolfState {
   // Wild child — model, converted flag
   wildChildModel?: string;
   wildChildConverted: boolean;
-
-  // Devoted servant
-  devotedServantFollows?: string;
 
   // Actor
   impersonatorFollows?: string;

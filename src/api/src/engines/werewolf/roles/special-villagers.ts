@@ -25,20 +25,6 @@ export function validateAction(
     return { newState: state, isValid: true };
   }
 
-  // ── Devoted servant: follow important player night 1 ─────────────────────
-  if (
-    action === 'devoted_servant_follow' &&
-    actor.role === 'devoted_servant' &&
-    state.round === 1 &&
-    !state.devotedServantFollows &&
-    targetId
-  ) {
-    const target = state.players.find((p) => p.userId === targetId);
-    if (!target || !target.isAlive) return { newState: state, isValid: false };
-    state.nightActions.devotedServantFollow = targetId;
-    return { newState: state, isValid: true };
-  }
-
   // ── Actor: follow a player night 1 ───────────────────────────────────────
   if (
     action === 'impersonator_follow' &&
@@ -78,7 +64,6 @@ export function resolveNight(state: WerewolfState): WerewolfState {
 
   if (state.round === 1) {
     if (na.wildChildModel) state.wildChildModel = na.wildChildModel;
-    if (na.devotedServantFollow) state.devotedServantFollows = na.devotedServantFollow;
     if (na.impersonatorFollow) state.impersonatorFollows = na.impersonatorFollow;
   }
 
@@ -116,7 +101,7 @@ export function handleFoolExecution(state: WerewolfState, executedId: string): b
   return false;
 }
 
-/** Post-vote hooks: suicidal win, impersonator inherit, devoted servant ability loss. */
+/** Post-vote hooks: suicidal win, impersonator inherit. */
 export function resolveVote(state: WerewolfState, executedId: string | undefined): WerewolfState {
   if (!executedId) return state;
 
@@ -138,11 +123,6 @@ export function resolveVote(state: WerewolfState, executedId: string | undefined
     }
   }
 
-  // Devoted servant: followed player dies → loses ability
-  if (state.devotedServantFollows === executedId) {
-    state.devotedServantFollows = undefined;
-  }
-
   return state;
 }
 
@@ -155,12 +135,6 @@ export function isNightComplete(state: WerewolfState): boolean {
     alive('wild_child') &&
     !state.wildChildModel &&
     state.nightActions.wildChildModel === undefined
-  )
-    return false;
-  if (
-    alive('devoted_servant') &&
-    !state.devotedServantFollows &&
-    state.nightActions.devotedServantFollow === undefined
   )
     return false;
   if (

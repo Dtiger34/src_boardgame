@@ -12,7 +12,6 @@ import imgTwoSisters      from '@/public/image/werewolf/twosisters.jpg';
 import imgThreeBrothers   from '@/public/image/werewolf/threebrothers.jpg';
 import imgStutteringJudge from '@/public/image/werewolf/judge.jpg';
 import imgRustyKnight     from '@/public/image/werewolf/knight.jpg';
-import imgDevotedServant  from '@/public/image/werewolf/humble.jpg';
 import imgWildChild       from '@/public/image/werewolf/wildchild.jpg';
 import imgFool           from '@/public/image/werewolf/goofyyoungman.jpg';
 import imgDrunk           from '@/public/image/werewolf/drunkard.jpg';
@@ -46,7 +45,6 @@ export const ROLE_IMAGES: Record<string, string> = {
   three_brothers:  imgThreeBrothers,
   stuttering_judge: imgStutteringJudge,
   rusty_knight:    imgRustyKnight,
-  devoted_servant: imgDevotedServant,
   wild_child:      imgWildChild,
   idiot:           imgFool,
   drunk:           imgDrunk,
@@ -78,7 +76,6 @@ export const ROLE_CARD_STYLES: Record<string, string> = {
   three_brothers:   'bg-green-950  border-green-700',
   stuttering_judge: 'bg-amber-950  border-amber-700',
   rusty_knight:     'bg-slate-950  border-slate-600',
-  devoted_servant:  'bg-green-950  border-green-600',
   wild_child:       'bg-emerald-950 border-emerald-700',
   idiot:            'bg-green-950  border-green-500',
   drunk:            'bg-green-950  border-green-500',
@@ -115,7 +112,6 @@ export const ROLE_ICONS: Record<string, string> = {
   three_brothers:   '👬',
   stuttering_judge: '⚖️',
   rusty_knight:     '🗡️',
-  devoted_servant:  '🫡',
   wild_child:       '🌿',
   idiot:            '🤪',
   drunk:            '🍺',

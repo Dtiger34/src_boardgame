@@ -91,7 +91,6 @@ export function ActionPanel({
     myRole === 'wolf_sorcerer' ||
     myRole === 'big_bad_wolf' ||
     myRole === 'thief' ||
-    myRole === 'devoted_servant' ||
     myRole === 'impersonator' ||
     myRole === 'avenger';
 
@@ -385,26 +384,6 @@ export function ActionPanel({
                     🃏 {card}
                   </button>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Devoted Servant: observe on round 1 */}
-          {myRole === 'devoted_servant' && round === 1 && !hasActed && (
-            <div>
-              <p className="text-sm text-gray-400 mb-3">{t('werewolf.devotedServantFollow')}</p>
-              <div className="space-y-2">
-                {aliveAll
-                  .filter((id) => id !== myUserId)
-                  .map((id) => (
-                    <button
-                      key={id}
-                      onClick={() => doAction('devoted_servant_follow', id)}
-                      className="w-full text-left px-3 py-2 bg-indigo-900 hover:bg-indigo-800 rounded-lg text-sm text-indigo-100 transition"
-                    >
-                      🕯 {getUsername(id)}
-                    </button>
-                  ))}
               </div>
             </div>
           )}

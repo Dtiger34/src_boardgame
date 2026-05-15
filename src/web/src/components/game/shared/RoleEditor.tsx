@@ -29,7 +29,6 @@ const ROLE_GROUPS: RoleGroup[] = [
       'three_brothers',
       'stuttering_judge',
       'rusty_knight',
-      'devoted_servant',
       'wild_child',
       'fool',
       'drunk',
